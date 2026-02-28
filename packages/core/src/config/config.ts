@@ -2130,14 +2130,6 @@ export class Config implements McpContext {
     }
   }
 
-  getListExtensions(): boolean {
-    return this.listExtensions;
-  }
-
-  getCwd(): string {
-    return this.cwd;
-  }
-
   getTelemetryOutfile(): string | undefined {
     return this.telemetrySettings.outfile;
   }
