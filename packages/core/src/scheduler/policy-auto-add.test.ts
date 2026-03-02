@@ -6,11 +6,14 @@
 
 import { describe, it, expect, vi, afterEach } from 'vitest';
 import { updatePolicy } from './policy.js';
-import { MessageBusType } from '../confirmation-bus/types.js';
-import type {
- SerializableConfirmationDetails ,
+import {
+  MessageBusType,
+  type SerializableConfirmationDetails,
+} from '../confirmation-bus/types.js';
+import {
   ToolConfirmationOutcome,
-  type AnyDeclarativeTool } from '../tools/tools.js';
+  type AnyDeclarativeTool,
+} from '../tools/tools.js';
 import { makeFakeConfig } from '../test-utils/config.js';
 import { type MessageBus } from '../confirmation-bus/message-bus.js';
 

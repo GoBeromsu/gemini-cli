@@ -57,7 +57,9 @@ describe('createPolicyUpdater', () => {
 
       const userPoliciesDir = '/mock/user/.gemini/policies';
       const policyFile = path.join(userPoliciesDir, AUTO_SAVED_POLICY_FILENAME);
-      vi.spyOn(mockStorage, 'getAutoSavedPolicyPath').mockReturnValue(policyFile);
+      vi.spyOn(mockStorage, 'getAutoSavedPolicyPath').mockReturnValue(
+        policyFile,
+      );
       (fs.mkdir as unknown as Mock).mockResolvedValue(undefined);
       (fs.readFile as unknown as Mock).mockRejectedValue(
         new Error('File not found'),
@@ -84,7 +86,10 @@ describe('createPolicyUpdater', () => {
         recursive: true,
       });
 
-      expect(fs.open).toHaveBeenCalledWith(expect.stringMatching(/\.tmp$/), 'wx');
+      expect(fs.open).toHaveBeenCalledWith(
+        expect.stringMatching(/\.tmp$/),
+        'wx',
+      );
 
       // Check written content
       const expectedContent = expect.stringContaining(`toolName = "test_tool"`);
@@ -117,7 +122,9 @@ describe('createPolicyUpdater', () => {
 
       const userPoliciesDir = '/mock/user/.gemini/policies';
       const policyFile = path.join(userPoliciesDir, AUTO_SAVED_POLICY_FILENAME);
-      vi.spyOn(mockStorage, 'getAutoSavedPolicyPath').mockReturnValue(policyFile);
+      vi.spyOn(mockStorage, 'getAutoSavedPolicyPath').mockReturnValue(
+        policyFile,
+      );
       (fs.mkdir as unknown as Mock).mockResolvedValue(undefined);
       (fs.readFile as unknown as Mock).mockRejectedValue(
         new Error('File not found'),
@@ -149,7 +156,10 @@ describe('createPolicyUpdater', () => {
       expect(addedRule?.priority).toBe(ALWAYS_ALLOW_PRIORITY);
 
       // Verify file written
-      expect(fs.open).toHaveBeenCalledWith(expect.stringMatching(/\.tmp$/), 'wx');
+      expect(fs.open).toHaveBeenCalledWith(
+        expect.stringMatching(/\.tmp$/),
+        'wx',
+      );
       expect(mockFileHandle.writeFile).toHaveBeenCalledWith(
         expect.stringContaining(`commandPrefix = "git status"`),
         'utf-8',
@@ -161,7 +171,9 @@ describe('createPolicyUpdater', () => {
 
       const userPoliciesDir = '/mock/user/.gemini/policies';
       const policyFile = path.join(userPoliciesDir, AUTO_SAVED_POLICY_FILENAME);
-      vi.spyOn(mockStorage, 'getAutoSavedPolicyPath').mockReturnValue(policyFile);
+      vi.spyOn(mockStorage, 'getAutoSavedPolicyPath').mockReturnValue(
+        policyFile,
+      );
       (fs.mkdir as unknown as Mock).mockResolvedValue(undefined);
       (fs.readFile as unknown as Mock).mockRejectedValue(
         new Error('File not found'),
@@ -188,7 +200,10 @@ describe('createPolicyUpdater', () => {
       await new Promise((resolve) => setTimeout(resolve, 10));
 
       // Verify file written
-      expect(fs.open).toHaveBeenCalledWith(expect.stringMatching(/\.tmp$/), 'wx');
+      expect(fs.open).toHaveBeenCalledWith(
+        expect.stringMatching(/\.tmp$/),
+        'wx',
+      );
       const writeCall = mockFileHandle.writeFile.mock.calls[0];
       const writtenContent = writeCall[0] as string;
       expect(writtenContent).toContain(`mcpName = "${mcpName}"`);
@@ -226,7 +241,9 @@ describe('createPolicyUpdater', () => {
 
       expect(coreEvents.emitFeedback).toHaveBeenCalledWith(
         'warning',
-        expect.stringContaining('Broad approval for "read_file" was not auto-saved'),
+        expect.stringContaining(
+          'Broad approval for "read_file" was not auto-saved',
+        ),
       );
       expect(fs.readFile).not.toHaveBeenCalled();
     });
@@ -243,7 +260,9 @@ describe('createPolicyUpdater', () => {
 
       expect(coreEvents.emitFeedback).toHaveBeenCalledWith(
         'warning',
-        expect.stringContaining('Approvals for sensitive tools must be specific'),
+        expect.stringContaining(
+          'Approvals for sensitive tools must be specific',
+        ),
       );
       expect(fs.readFile).not.toHaveBeenCalled();
     });
@@ -258,7 +277,9 @@ argsPattern = ".*\\"file_path\\":\\"test.ts\\".*"
 `;
       vi.mocked(fs.readFile).mockResolvedValue(existingPolicy);
       vi.mocked(fs.mkdir).mockResolvedValue(undefined);
-      vi.spyOn(mockStorage, 'getAutoSavedPolicyPath').mockReturnValue('test-policy.toml');
+      vi.spyOn(mockStorage, 'getAutoSavedPolicyPath').mockReturnValue(
+        'test-policy.toml',
+      );
 
       createPolicyUpdater(policyEngine, messageBus, mockStorage);
 

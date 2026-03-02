@@ -160,7 +160,10 @@ describe('policy.ts', () => {
         publish: vi.fn(),
       } as unknown as Mocked<MessageBus>;
 
-      const tool = { name: 'replace', isSensitive: false } as AnyDeclarativeTool; // 'replace' is in EDIT_TOOL_NAMES
+      const tool = {
+        name: 'replace',
+        isSensitive: false,
+      } as AnyDeclarativeTool; // 'replace' is in EDIT_TOOL_NAMES
 
       await updatePolicy(
         tool,

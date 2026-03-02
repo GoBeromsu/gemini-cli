@@ -9,8 +9,16 @@ import fs from 'node:fs';
 import fsPromises from 'node:fs/promises';
 import path from 'node:path';
 import { downloadRipGrep } from '@joshua.litt/get-ripgrep';
-import type { ToolInvocation, ToolResult, ToolCallConfirmationDetails, ToolSearchConfirmationDetails } from './tools.js';
-import { BaseDeclarativeTool, BaseToolInvocation, Kind, ToolConfirmationOutcome } from './tools.js';
+import {
+  type ToolInvocation,
+  type ToolResult,
+  type ToolCallConfirmationDetails,
+  type ToolSearchConfirmationDetails,
+  BaseDeclarativeTool,
+  BaseToolInvocation,
+  Kind,
+  type ToolConfirmationOutcome,
+} from './tools.js';
 import { ToolErrorType } from './tool-error.js';
 import { makeRelative, shortenPath } from '../utils/paths.js';
 import { getErrorMessage, isNodeError } from '../utils/errors.js';

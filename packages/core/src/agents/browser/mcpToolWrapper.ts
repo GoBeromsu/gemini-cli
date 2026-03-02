@@ -311,15 +311,10 @@ class McpDeclarativeTool extends DeclarativeTool<
     parameterSchema: unknown,
     messageBus: MessageBus,
   ) {
-    super(
-      name,
-      name,
-      description,
-      Kind.Other,
-      parameterSchema,
-      messageBus,
-      { isOutputMarkdown: true, canUpdateOutput: false },
-    );
+    super(name, name, description, Kind.Other, parameterSchema, messageBus, {
+      isOutputMarkdown: true,
+      canUpdateOutput: false,
+    });
   }
 
   build(

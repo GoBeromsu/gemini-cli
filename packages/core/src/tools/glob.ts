@@ -8,8 +8,16 @@ import type { MessageBus } from '../confirmation-bus/message-bus.js';
 import fs from 'node:fs';
 import path from 'node:path';
 import { glob, escape } from 'glob';
-import type { ToolInvocation, ToolResult, ToolCallConfirmationDetails, ToolSearchConfirmationDetails } from './tools.js';
-import { BaseDeclarativeTool, BaseToolInvocation, Kind, ToolConfirmationOutcome } from './tools.js';
+import {
+  type ToolInvocation,
+  type ToolResult,
+  type ToolCallConfirmationDetails,
+  type ToolSearchConfirmationDetails,
+  BaseDeclarativeTool,
+  BaseToolInvocation,
+  Kind,
+  type ToolConfirmationOutcome,
+} from './tools.js';
 import { shortenPath, makeRelative } from '../utils/paths.js';
 import { type Config } from '../config/config.js';
 import { DEFAULT_FILE_FILTERING_OPTIONS } from '../config/constants.js';

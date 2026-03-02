@@ -7,19 +7,17 @@
 import type { MessageBus } from '../confirmation-bus/message-bus.js';
 import fs from 'node:fs/promises';
 import path from 'node:path';
-import type {
-  ToolInvocation,
-  ToolResult,
-  ToolCallConfirmationDetails,
-  ToolSearchConfirmationDetails,
-} from './tools.js';
 import {
+  type ToolInvocation,
+  type ToolResult,
+  type ToolCallConfirmationDetails,
+  type ToolSearchConfirmationDetails,
   BaseDeclarativeTool,
   BaseToolInvocation,
   Kind,
-  ToolConfirmationOutcome,
+  type ToolConfirmationOutcome,
 } from './tools.js';
-import { makeRelative, lightenPath } from '../utils/paths.js';
+import { makeRelative, shortenPath } from '../utils/paths.js';
 import type { Config } from '../config/config.js';
 import { DEFAULT_FILE_FILTERING_OPTIONS } from '../config/constants.js';
 import { ToolErrorType } from './tool-error.js';
@@ -136,7 +134,7 @@ class LSToolInvocation extends BaseToolInvocation<LSToolParams, ToolResult> {
       this.params.dir_path,
       this.config.getTargetDir(),
     );
-    return lightenPath(relativePath);
+    return shortenPath(relativePath);
   }
 
   protected override async getConfirmationDetails(
@@ -154,7 +152,6 @@ class LSToolInvocation extends BaseToolInvocation<LSToolParams, ToolResult> {
         await this.publishPolicyUpdate(outcome);
       },
     };
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return details;
   }
 
@@ -209,14 +206,14 @@ class LSToolInvocation extends BaseToolInvocation<LSToolParams, ToolResult> {
           `Error: Directory not found or inaccessible: ${resolvedDirPath}`,
           `Directory not found or inaccessible.`,
           ToolErrorType.FILE_NOT_FOUND,
-        ) as ToolResult;
+        );
       }
       if (!stats.isDirectory()) {
         return this.errorResult(
           `Error: Path is not a directory: ${resolvedDirPath}`,
           `Path is not a directory.`,
           ToolErrorType.PATH_IS_NOT_A_DIRECTORY,
-        ) as ToolResult;
+        );
       }
 
       const files = await fs.readdir(resolvedDirPath);
@@ -309,7 +306,7 @@ class LSToolInvocation extends BaseToolInvocation<LSToolParams, ToolResult> {
         errorMsg,
         'Failed to list directory.',
         ToolErrorType.LS_EXECUTION_ERROR,
-      ) as ToolResult;
+      );
     }
   }
 }

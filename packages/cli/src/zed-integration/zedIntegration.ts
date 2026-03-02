@@ -1301,6 +1301,7 @@ function toPermissionOptions(
         ...basicPermissionOptions,
       ];
     case 'info':
+    case 'search':
       return [
         {
           optionId: ToolConfirmationOutcome.ProceedAlways,
