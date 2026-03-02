@@ -102,6 +102,7 @@ export type SerializableConfirmationDetails =
       type: 'read';
       title: string;
       filePath: string;
+      filePaths?: string[];
     }
   | {
       type: 'mcp';

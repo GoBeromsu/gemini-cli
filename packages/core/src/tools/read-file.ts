@@ -188,8 +188,8 @@ ${result.llmContent}`;
       type: 'read',
       title: `Confirm Read: ${shortenPath(makeRelative(this.resolvedPath, this.config.getTargetDir()))}`,
       filePath: this.params.file_path,
-      onConfirm: async (outcome: ToolConfirmationOutcome) => {
-        await this.publishPolicyUpdate(outcome);
+      onConfirm: async (_outcome: ToolConfirmationOutcome) => {
+        // Policy updates are now handled centrally by the scheduler.
       },
     };
     return details;

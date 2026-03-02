@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, afterEach, beforeEach } from 'vitest';
 import { ToolConfirmationMessage } from './ToolConfirmationMessage.js';
 import type {
   SerializableConfirmationDetails,
@@ -28,10 +28,18 @@ vi.mock('../../contexts/ToolActionsContext.js', async (importOriginal) => {
 
 describe('ToolConfirmationMessage', () => {
   const mockConfirm = vi.fn();
-  vi.mocked(useToolActions).mockReturnValue({
-    confirm: mockConfirm,
-    cancel: vi.fn(),
-    isDiffingEnabled: false,
+
+  beforeEach(() => {
+    vi.mocked(useToolActions).mockReturnValue({
+      confirm: mockConfirm,
+      cancel: vi.fn(),
+      isDiffingEnabled: false,
+    });
+  });
+
+  afterEach(() => {
+    vi.clearAllMocks();
+    vi.restoreAllMocks();
   });
 
   const mockConfig = {
@@ -425,12 +433,6 @@ describe('ToolConfirmationMessage', () => {
         getIdeMode: () => false,
       } as unknown as Config;
 
-      vi.mocked(useToolActions).mockReturnValue({
-        confirm: vi.fn(),
-        cancel: vi.fn(),
-        isDiffingEnabled: false,
-      });
-
       const { lastFrame, waitUntilReady, unmount } = renderWithProviders(
         <ToolConfirmationMessage
           callId="test-call-id"
@@ -452,12 +454,6 @@ describe('ToolConfirmationMessage', () => {
         isTrustedFolder: () => true,
         getIdeMode: () => true,
       } as unknown as Config;
-
-      vi.mocked(useToolActions).mockReturnValue({
-        confirm: vi.fn(),
-        cancel: vi.fn(),
-        isDiffingEnabled: false,
-      });
 
       const { lastFrame, waitUntilReady, unmount } = renderWithProviders(
         <ToolConfirmationMessage

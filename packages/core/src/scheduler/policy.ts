@@ -24,6 +24,7 @@ import {
 } from '../tools/tools.js';
 import { DiscoveredMCPTool } from '../tools/mcp-tool.js';
 import { EDIT_TOOL_NAMES } from '../tools/tool-names.js';
+import { escapeRegex } from '../policy/utils.js';
 import type { ValidatingToolCall } from './types.js';
 
 /**
@@ -181,15 +182,28 @@ function generateArgsPattern(
 ): string | undefined {
   if (details.type === 'edit' && details.filePath) {
     const jsonValue = JSON.stringify(details.filePath).slice(1, -1);
-    return `.*"file_path":"${jsonValue}".*`;
+    return `.*"file_path":"${escapeRegex(jsonValue)}".*`;
   }
 
-  if (details.type === 'read' && details.filePath) {
-    const jsonValue = JSON.stringify(details.filePath).slice(1, -1);
+  if (details.type === 'read') {
     if (toolName === 'read_many_files') {
-      return `.*"include":\\[.*"${jsonValue}".*\\].*`;
+      const paths =
+        details.filePaths && details.filePaths.length > 0
+          ? details.filePaths
+          : [details.filePath];
+      const escapedPaths = paths
+        .map((path) => {
+          const jsonValue = JSON.stringify(path).slice(1, -1);
+          return escapeRegex(jsonValue);
+        })
+        .join('|');
+      return `.*"include":\\[.*(${escapedPaths}).*\\].*`;
     }
-    return `.*"file_path":"${jsonValue}".*`;
+
+    if (details.filePath) {
+      const jsonValue = JSON.stringify(details.filePath).slice(1, -1);
+      return `.*"file_path":"${escapeRegex(jsonValue)}".*`;
+    }
   }
 
   if (details.type === 'search' && details.dirPath) {
@@ -198,12 +212,15 @@ function generateArgsPattern(
     }
     const jsonValue = JSON.stringify(details.dirPath).slice(1, -1);
     // Most search tools use 'dir_path' or similar
-    return `.*"dir_path":"${jsonValue}".*`;
+    return `.*"dir_path":"${escapeRegex(jsonValue)}".*`;
   }
 
   if (details.type === 'info' && details.urls && details.urls.length > 0) {
     const escapedUrls = details.urls
-      .map((url) => JSON.stringify(url).slice(1, -1))
+      .map((url) => {
+        const jsonValue = JSON.stringify(url).slice(1, -1);
+        return escapeRegex(jsonValue);
+      })
       .join('|');
     return `.*(${escapedUrls}).*`;
   }

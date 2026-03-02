@@ -846,6 +846,7 @@ export interface ToolReadConfirmationDetails {
   title: string;
   onConfirm: (outcome: ToolConfirmationOutcome) => Promise<void>;
   filePath: string;
+  filePaths?: string[];
 }
 
 export type ToolCallConfirmationDetails =

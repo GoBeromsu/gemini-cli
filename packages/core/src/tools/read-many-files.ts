@@ -478,8 +478,9 @@ ${finalExclusionPatternsForDescription
       type: 'read',
       title: `Confirm Read: ${this.params.include?.length || 0} patterns`,
       filePath: firstPattern,
-      onConfirm: async (outcome: ToolConfirmationOutcome) => {
-        await this.publishPolicyUpdate(outcome);
+      filePaths: this.params.include,
+      onConfirm: async (_outcome: ToolConfirmationOutcome) => {
+        // Policy updates are now handled centrally by the scheduler.
       },
     };
     return details;

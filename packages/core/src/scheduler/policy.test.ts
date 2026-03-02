@@ -512,7 +512,39 @@ describe('policy.ts', () => {
 
       expect(mockMessageBus.publish).toHaveBeenCalledWith(
         expect.objectContaining({
-          argsPattern: '.*"include":\\[.*"src/index.ts".*\\].*',
+          argsPattern: '.*"include":\\[.*(src/index\\.ts).*\\].*',
+        }),
+      );
+    });
+
+    it('should handle read_many_files with multiple file paths', async () => {
+      const mockConfig = {
+        setApprovalMode: vi.fn(),
+        getAutoAddPolicy: vi.fn().mockReturnValue(true),
+      } as unknown as Mocked<Config>;
+      const mockMessageBus = {
+        publish: vi.fn(),
+      } as unknown as Mocked<MessageBus>;
+      const tool = {
+        name: 'read_many_files',
+        isSensitive: true,
+      } as AnyDeclarativeTool;
+      const details = {
+        type: 'read' as const,
+        filePath: 'src/fileA.ts',
+        filePaths: ['src/fileA.ts', 'src/fileB.ts'],
+        title: 'Read',
+      };
+
+      await updatePolicy(tool, ToolConfirmationOutcome.ProceedAlways, details, {
+        config: mockConfig,
+        messageBus: mockMessageBus,
+      });
+
+      expect(mockMessageBus.publish).toHaveBeenCalledWith(
+        expect.objectContaining({
+          argsPattern:
+            '.*"include":\\[.*(src/fileA\\.ts|src/fileB\\.ts).*\\].*',
         }),
       );
     });
@@ -571,9 +603,10 @@ describe('policy.ts', () => {
       });
 
       // JSON.stringify("C:\test\file.ts") -> "C:\\test\\file.ts"
+      // escapeRegex("C:\\test\\file.ts") -> "C\\\\test\\\\file\\.ts"
       expect(mockMessageBus.publish).toHaveBeenCalledWith(
         expect.objectContaining({
-          argsPattern: '.*"file_path":"C:\\\\test\\\\file.ts".*',
+          argsPattern: '.*"file_path":"C:\\\\\\\\test\\\\\\\\file\\.ts".*',
         }),
       );
     });

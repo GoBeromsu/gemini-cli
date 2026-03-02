@@ -148,8 +148,8 @@ class LSToolInvocation extends BaseToolInvocation<LSToolParams, ToolResult> {
       type: 'search',
       title: `Confirm: ${this._toolDisplayName || this._toolName}`,
       dirPath: this.params.dir_path,
-      onConfirm: async (outcome: ToolConfirmationOutcome) => {
-        await this.publishPolicyUpdate(outcome);
+      onConfirm: async (_outcome: ToolConfirmationOutcome) => {
+        // Policy updates are now handled centrally by the scheduler.
       },
     };
     return details;
