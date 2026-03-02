@@ -43,8 +43,20 @@ class McpToolInvocation extends BaseToolInvocation<
     private readonly toolName: string,
     params: Record<string, unknown>,
     messageBus: MessageBus,
+    _toolDisplayName?: string,
+    _serverName?: string,
+    _toolAnnotations?: Record<string, unknown>,
+    isSensitive: boolean = false,
   ) {
-    super(params, messageBus, toolName, toolName);
+    super(
+      params,
+      messageBus,
+      toolName,
+      _toolDisplayName ?? toolName,
+      _serverName,
+      _toolAnnotations,
+      isSensitive,
+    );
   }
 
   getDescription(): string {
@@ -146,9 +158,22 @@ class TypeTextInvocation extends BaseToolInvocation<
     private readonly browserManager: BrowserManager,
     private readonly text: string,
     private readonly submitKey: string | undefined,
+    params: Record<string, unknown>,
     messageBus: MessageBus,
+    _toolDisplayName?: string,
+    _serverName?: string,
+    _toolAnnotations?: Record<string, unknown>,
+    isSensitive: boolean = false,
   ) {
-    super({ text, submitKey }, messageBus, 'type_text', 'type_text');
+    super(
+      params,
+      messageBus,
+      'type_text',
+      _toolDisplayName ?? 'type_text',
+      _serverName,
+      _toolAnnotations,
+      isSensitive,
+    );
   }
 
   getDescription(): string {
@@ -293,8 +318,7 @@ class McpDeclarativeTool extends DeclarativeTool<
       Kind.Other,
       parameterSchema,
       messageBus,
-      /* isOutputMarkdown */ true,
-      /* canUpdateOutput */ false,
+      { isOutputMarkdown: true, canUpdateOutput: false },
     );
   }
 
@@ -306,6 +330,10 @@ class McpDeclarativeTool extends DeclarativeTool<
       this.name,
       params,
       this.messageBus,
+      this.displayName,
+      undefined, // _serverName
+      undefined, // _toolAnnotations
+      this.isSensitive,
     );
   }
 }
@@ -347,8 +375,7 @@ class TypeTextDeclarativeTool extends DeclarativeTool<
         required: ['text'],
       },
       messageBus,
-      /* isOutputMarkdown */ true,
-      /* canUpdateOutput */ false,
+      { isOutputMarkdown: true, canUpdateOutput: false },
     );
   }
 
@@ -363,7 +390,12 @@ class TypeTextDeclarativeTool extends DeclarativeTool<
       this.browserManager,
       String(params['text'] ?? ''),
       submitKey,
+      params,
       this.messageBus,
+      this.displayName,
+      undefined, // _serverName
+      undefined, // _toolAnnotations
+      this.isSensitive,
     );
   }
 }

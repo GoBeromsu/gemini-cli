@@ -47,6 +47,7 @@ describe('policy.ts', () => {
 
       const mockConfig = {
         getPolicyEngine: vi.fn().mockReturnValue(mockPolicyEngine),
+        getAutoAddPolicy: vi.fn().mockReturnValue(true),
       } as unknown as Mocked<Config>;
 
       const toolCall = {
@@ -70,6 +71,7 @@ describe('policy.ts', () => {
 
       const mockConfig = {
         getPolicyEngine: vi.fn().mockReturnValue(mockPolicyEngine),
+        getAutoAddPolicy: vi.fn().mockReturnValue(true),
       } as unknown as Mocked<Config>;
 
       const mcpTool = Object.create(DiscoveredMCPTool.prototype);
@@ -116,6 +118,7 @@ describe('policy.ts', () => {
 
       const mockConfig = {
         getPolicyEngine: vi.fn().mockReturnValue(mockPolicyEngine),
+        getAutoAddPolicy: vi.fn().mockReturnValue(true),
       } as unknown as Mocked<Config>;
 
       const toolCall = {
@@ -151,12 +154,13 @@ describe('policy.ts', () => {
     it('should set AUTO_EDIT mode for auto-edit transition tools', async () => {
       const mockConfig = {
         setApprovalMode: vi.fn(),
+        getAutoAddPolicy: vi.fn().mockReturnValue(true),
       } as unknown as Mocked<Config>;
       const mockMessageBus = {
         publish: vi.fn(),
       } as unknown as Mocked<MessageBus>;
 
-      const tool = { name: 'replace' } as AnyDeclarativeTool; // 'replace' is in EDIT_TOOL_NAMES
+      const tool = { name: 'replace', isSensitive: false } as AnyDeclarativeTool; // 'replace' is in EDIT_TOOL_NAMES
 
       await updatePolicy(
         tool,
@@ -174,11 +178,15 @@ describe('policy.ts', () => {
     it('should handle standard policy updates (persist=false)', async () => {
       const mockConfig = {
         setApprovalMode: vi.fn(),
+        getAutoAddPolicy: vi.fn().mockReturnValue(false),
       } as unknown as Mocked<Config>;
       const mockMessageBus = {
         publish: vi.fn(),
       } as unknown as Mocked<MessageBus>;
-      const tool = { name: 'test-tool' } as AnyDeclarativeTool;
+      const tool = {
+        name: 'test-tool',
+        isSensitive: false,
+      } as AnyDeclarativeTool;
 
       await updatePolicy(
         tool,
@@ -199,11 +207,15 @@ describe('policy.ts', () => {
     it('should handle standard policy updates with persistence', async () => {
       const mockConfig = {
         setApprovalMode: vi.fn(),
+        getAutoAddPolicy: vi.fn().mockReturnValue(true),
       } as unknown as Mocked<Config>;
       const mockMessageBus = {
         publish: vi.fn(),
       } as unknown as Mocked<MessageBus>;
-      const tool = { name: 'test-tool' } as AnyDeclarativeTool;
+      const tool = {
+        name: 'test-tool',
+        isSensitive: false,
+      } as AnyDeclarativeTool;
 
       await updatePolicy(
         tool,
@@ -224,11 +236,15 @@ describe('policy.ts', () => {
     it('should handle shell command prefixes', async () => {
       const mockConfig = {
         setApprovalMode: vi.fn(),
+        getAutoAddPolicy: vi.fn().mockReturnValue(true),
       } as unknown as Mocked<Config>;
       const mockMessageBus = {
         publish: vi.fn(),
       } as unknown as Mocked<MessageBus>;
-      const tool = { name: 'run_shell_command' } as AnyDeclarativeTool;
+      const tool = {
+        name: 'run_shell_command',
+        isSensitive: true,
+      } as AnyDeclarativeTool;
       const details: ToolExecuteConfirmationDetails = {
         type: 'exec',
         command: 'ls -la',
@@ -255,11 +271,15 @@ describe('policy.ts', () => {
     it('should handle MCP policy updates (server scope)', async () => {
       const mockConfig = {
         setApprovalMode: vi.fn(),
+        getAutoAddPolicy: vi.fn().mockReturnValue(false),
       } as unknown as Mocked<Config>;
       const mockMessageBus = {
         publish: vi.fn(),
       } as unknown as Mocked<MessageBus>;
-      const tool = { name: 'mcp-tool' } as AnyDeclarativeTool;
+      const tool = {
+        name: 'mcp-tool',
+        isSensitive: false,
+      } as AnyDeclarativeTool;
       const details: ToolMcpConfirmationDetails = {
         type: 'mcp',
         serverName: 'my-server',
@@ -289,11 +309,15 @@ describe('policy.ts', () => {
     it('should NOT publish update for ProceedOnce', async () => {
       const mockConfig = {
         setApprovalMode: vi.fn(),
+        getAutoAddPolicy: vi.fn().mockReturnValue(true),
       } as unknown as Mocked<Config>;
       const mockMessageBus = {
         publish: vi.fn(),
       } as unknown as Mocked<MessageBus>;
-      const tool = { name: 'test-tool' } as AnyDeclarativeTool;
+      const tool = {
+        name: 'test-tool',
+        isSensitive: false,
+      } as AnyDeclarativeTool;
 
       await updatePolicy(tool, ToolConfirmationOutcome.ProceedOnce, undefined, {
         config: mockConfig,
@@ -307,11 +331,15 @@ describe('policy.ts', () => {
     it('should NOT publish update for Cancel', async () => {
       const mockConfig = {
         setApprovalMode: vi.fn(),
+        getAutoAddPolicy: vi.fn().mockReturnValue(true),
       } as unknown as Mocked<Config>;
       const mockMessageBus = {
         publish: vi.fn(),
       } as unknown as Mocked<MessageBus>;
-      const tool = { name: 'test-tool' } as AnyDeclarativeTool;
+      const tool = {
+        name: 'test-tool',
+        isSensitive: false,
+      } as AnyDeclarativeTool;
 
       await updatePolicy(tool, ToolConfirmationOutcome.Cancel, undefined, {
         config: mockConfig,
@@ -324,11 +352,15 @@ describe('policy.ts', () => {
     it('should NOT publish update for ModifyWithEditor', async () => {
       const mockConfig = {
         setApprovalMode: vi.fn(),
+        getAutoAddPolicy: vi.fn().mockReturnValue(true),
       } as unknown as Mocked<Config>;
       const mockMessageBus = {
         publish: vi.fn(),
       } as unknown as Mocked<MessageBus>;
-      const tool = { name: 'test-tool' } as AnyDeclarativeTool;
+      const tool = {
+        name: 'test-tool',
+        isSensitive: false,
+      } as AnyDeclarativeTool;
 
       await updatePolicy(
         tool,
@@ -343,11 +375,15 @@ describe('policy.ts', () => {
     it('should handle MCP ProceedAlwaysTool (specific tool name)', async () => {
       const mockConfig = {
         setApprovalMode: vi.fn(),
+        getAutoAddPolicy: vi.fn().mockReturnValue(false),
       } as unknown as Mocked<Config>;
       const mockMessageBus = {
         publish: vi.fn(),
       } as unknown as Mocked<MessageBus>;
-      const tool = { name: 'mcp-tool' } as AnyDeclarativeTool;
+      const tool = {
+        name: 'mcp-tool',
+        isSensitive: false,
+      } as AnyDeclarativeTool;
       const details: ToolMcpConfirmationDetails = {
         type: 'mcp',
         serverName: 'my-server',
@@ -377,11 +413,15 @@ describe('policy.ts', () => {
     it('should handle MCP ProceedAlways (persist: false)', async () => {
       const mockConfig = {
         setApprovalMode: vi.fn(),
+        getAutoAddPolicy: vi.fn().mockReturnValue(false),
       } as unknown as Mocked<Config>;
       const mockMessageBus = {
         publish: vi.fn(),
       } as unknown as Mocked<MessageBus>;
-      const tool = { name: 'mcp-tool' } as AnyDeclarativeTool;
+      const tool = {
+        name: 'mcp-tool',
+        isSensitive: false,
+      } as AnyDeclarativeTool;
       const details: ToolMcpConfirmationDetails = {
         type: 'mcp',
         serverName: 'my-server',
@@ -409,11 +449,15 @@ describe('policy.ts', () => {
     it('should handle MCP ProceedAlwaysAndSave (persist: true)', async () => {
       const mockConfig = {
         setApprovalMode: vi.fn(),
+        getAutoAddPolicy: vi.fn().mockReturnValue(false),
       } as unknown as Mocked<Config>;
       const mockMessageBus = {
         publish: vi.fn(),
       } as unknown as Mocked<MessageBus>;
-      const tool = { name: 'mcp-tool' } as AnyDeclarativeTool;
+      const tool = {
+        name: 'mcp-tool',
+        isSensitive: false,
+      } as AnyDeclarativeTool;
       const details: ToolMcpConfirmationDetails = {
         type: 'mcp',
         serverName: 'my-server',
@@ -521,6 +565,7 @@ describe('Plan Mode Denial Consistency', () => {
       getMessageBus: vi.fn().mockReturnValue(mockMessageBus),
       isInteractive: vi.fn().mockReturnValue(true),
       getEnableHooks: vi.fn().mockReturnValue(false),
+      getAutoAddPolicy: vi.fn().mockReturnValue(true),
       getApprovalMode: vi.fn().mockReturnValue(ApprovalMode.PLAN), // Key: Plan Mode
       setApprovalMode: vi.fn(),
       getUsageStatisticsEnabled: vi.fn().mockReturnValue(false),

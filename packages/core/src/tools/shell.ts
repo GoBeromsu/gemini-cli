@@ -68,8 +68,19 @@ export class ShellToolInvocation extends BaseToolInvocation<
     messageBus: MessageBus,
     _toolName?: string,
     _toolDisplayName?: string,
+    _serverName?: string,
+    _toolAnnotations?: Record<string, unknown>,
+    isSensitive: boolean = false,
   ) {
-    super(params, messageBus, _toolName, _toolDisplayName);
+    super(
+      params,
+      messageBus,
+      _toolName,
+      _toolDisplayName,
+      _serverName,
+      _toolAnnotations,
+      isSensitive,
+    );
   }
 
   getDescription(): string {
@@ -477,8 +488,11 @@ export class ShellTool extends BaseDeclarativeTool<
       Kind.Execute,
       definition.base.parametersJsonSchema,
       messageBus,
-      false, // output is not markdown
-      true, // output can be updated
+      {
+        isOutputMarkdown: false, // output is not markdown
+        canUpdateOutput: true, // output can be updated
+        isSensitive: true,
+      },
     );
   }
 
@@ -504,6 +518,9 @@ export class ShellTool extends BaseDeclarativeTool<
     messageBus: MessageBus,
     _toolName?: string,
     _toolDisplayName?: string,
+    _serverName?: string,
+    _toolAnnotations?: Record<string, unknown>,
+    isSensitive?: boolean,
   ): ToolInvocation<ShellToolParams, ToolResult> {
     return new ShellToolInvocation(
       this.config,
@@ -511,6 +528,9 @@ export class ShellTool extends BaseDeclarativeTool<
       messageBus,
       _toolName,
       _toolDisplayName,
+      _serverName,
+      _toolAnnotations,
+      isSensitive,
     );
   }
 

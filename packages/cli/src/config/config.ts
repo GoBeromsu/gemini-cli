@@ -770,6 +770,7 @@ export async function loadCliConfig(
     allowedTools: allowedTools.length > 0 ? allowedTools : undefined,
     policyEngineConfig,
     policyUpdateConfirmationRequest,
+    autoAddPolicy: settings.security?.autoAddPolicy,
     excludeTools,
     toolDiscoveryCommand: settings.tools?.discoveryCommand,
     toolCallCommand: settings.tools?.callCommand,

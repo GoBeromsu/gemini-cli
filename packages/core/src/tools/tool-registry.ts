@@ -42,8 +42,20 @@ class DiscoveredToolInvocation extends BaseToolInvocation<
     prefixedToolName: string,
     params: ToolParams,
     messageBus: MessageBus,
+    _toolDisplayName?: string,
+    _serverName?: string,
+    _toolAnnotations?: Record<string, unknown>,
+    isSensitive: boolean = false,
   ) {
-    super(params, messageBus, prefixedToolName);
+    super(
+      params,
+      messageBus,
+      prefixedToolName,
+      _toolDisplayName,
+      _serverName,
+      _toolAnnotations,
+      isSensitive,
+    );
   }
 
   getDescription(): string {
@@ -171,8 +183,7 @@ Signal: Signal number or \`(none)\` if no signal was received.
       Kind.Other,
       parameterSchema,
       messageBus,
-      false, // isOutputMarkdown
-      false, // canUpdateOutput
+      { isOutputMarkdown: false, canUpdateOutput: false },
     );
     this.originalName = originalName;
   }
@@ -182,6 +193,9 @@ Signal: Signal number or \`(none)\` if no signal was received.
     messageBus: MessageBus,
     _toolName?: string,
     _displayName?: string,
+    _serverName?: string,
+    _toolAnnotations?: Record<string, unknown>,
+    isSensitive?: boolean,
   ): ToolInvocation<ToolParams, ToolResult> {
     return new DiscoveredToolInvocation(
       this.config,
@@ -189,6 +203,10 @@ Signal: Signal number or \`(none)\` if no signal was received.
       _toolName ?? this.name,
       params,
       messageBus,
+      _displayName ?? this.displayName,
+      _serverName,
+      _toolAnnotations,
+      isSensitive,
     );
   }
 }

@@ -8,8 +8,8 @@ import type { MessageBus } from '../confirmation-bus/message-bus.js';
 import fs from 'node:fs';
 import path from 'node:path';
 import { glob, escape } from 'glob';
-import type { ToolInvocation, ToolResult } from './tools.js';
-import { BaseDeclarativeTool, BaseToolInvocation, Kind } from './tools.js';
+import type { ToolInvocation, ToolResult, ToolCallConfirmationDetails, ToolSearchConfirmationDetails } from './tools.js';
+import { BaseDeclarativeTool, BaseToolInvocation, Kind, ToolConfirmationOutcome } from './tools.js';
 import { shortenPath, makeRelative } from '../utils/paths.js';
 import { type Config } from '../config/config.js';
 import { DEFAULT_FILE_FILTERING_OPTIONS } from '../config/constants.js';
@@ -91,13 +91,24 @@ class GlobToolInvocation extends BaseToolInvocation<
   ToolResult
 > {
   constructor(
-    private config: Config,
+    private readonly config: Config,
     params: GlobToolParams,
     messageBus: MessageBus,
     _toolName?: string,
     _toolDisplayName?: string,
+    _serverName?: string,
+    _toolAnnotations?: Record<string, unknown>,
+    isSensitive: boolean = false,
   ) {
-    super(params, messageBus, _toolName, _toolDisplayName);
+    super(
+      params,
+      messageBus,
+      _toolName,
+      _toolDisplayName,
+      _serverName,
+      _toolAnnotations,
+      isSensitive,
+    );
   }
 
   getDescription(): string {
@@ -111,6 +122,24 @@ class GlobToolInvocation extends BaseToolInvocation<
       description += ` within ${shortenPath(relativePath)}`;
     }
     return description;
+  }
+
+  protected override async getConfirmationDetails(
+    _abortSignal: AbortSignal,
+  ): Promise<ToolCallConfirmationDetails | false> {
+    if (!this.messageBus) {
+      return false;
+    }
+
+    const details: ToolSearchConfirmationDetails = {
+      type: 'search',
+      title: `Confirm: ${this._toolDisplayName || this._toolName}`,
+      dirPath: this.params.dir_path ?? '.',
+      onConfirm: async (outcome: ToolConfirmationOutcome) => {
+        await this.publishPolicyUpdate(outcome);
+      },
+    };
+    return details;
   }
 
   async execute(signal: AbortSignal): Promise<ToolResult> {
@@ -276,8 +305,7 @@ export class GlobTool extends BaseDeclarativeTool<GlobToolParams, ToolResult> {
       Kind.Search,
       GLOB_DEFINITION.base.parametersJsonSchema,
       messageBus,
-      true,
-      false,
+      { isOutputMarkdown: true, canUpdateOutput: false, isSensitive: true },
     );
   }
 
@@ -328,6 +356,9 @@ export class GlobTool extends BaseDeclarativeTool<GlobToolParams, ToolResult> {
     messageBus: MessageBus,
     _toolName?: string,
     _toolDisplayName?: string,
+    _serverName?: string,
+    _toolAnnotations?: Record<string, unknown>,
+    isSensitive?: boolean,
   ): ToolInvocation<GlobToolParams, ToolResult> {
     return new GlobToolInvocation(
       this.config,
@@ -335,6 +366,9 @@ export class GlobTool extends BaseDeclarativeTool<GlobToolParams, ToolResult> {
       messageBus,
       _toolName,
       _toolDisplayName,
+      _serverName,
+      _toolAnnotations,
+      isSensitive,
     );
   }
 

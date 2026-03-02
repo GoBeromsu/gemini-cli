@@ -514,6 +514,40 @@ export function createPolicyUpdater(
       }
 
       if (message.persist) {
+        // Safeguard 1: Do not auto-persist broad wildcards
+        if (toolName === '*' || toolName.endsWith('__*')) {
+          coreEvents.emitFeedback(
+            'warning',
+            `Broad approval for "${toolName}" was not auto-saved for safety reasons. You must manually add wildcard rules to your policy file.`,
+          );
+          return;
+        }
+
+        // Safeguard 2: Do not auto-persist broad regex
+        if (
+          message.argsPattern &&
+          (message.argsPattern === '.*' || message.argsPattern === '^.*$')
+        ) {
+          coreEvents.emitFeedback(
+            'warning',
+            `Broad approval for "${toolName}" was not auto-saved for safety reasons. Rules with catch-all patterns must be added manually.`,
+          );
+          return;
+        }
+
+        // Safeguard 3: Sensitive tools MUST be specific to be auto-saved
+        if (
+          message.isSensitive &&
+          !message.argsPattern &&
+          !message.commandPrefix
+        ) {
+          coreEvents.emitFeedback(
+            'warning',
+            `Broad approval for "${toolName}" was not auto-saved for safety reasons. Approvals for sensitive tools must be specific to be auto-saved.`,
+          );
+          return;
+        }
+
         persistenceQueue = persistenceQueue.then(async () => {
           try {
             const policyFile = storage.getAutoSavedPolicyPath();
@@ -547,11 +581,12 @@ export function createPolicyUpdater(
 
             // Create new rule object
             const newRule: TomlRule = {};
+            let simpleToolName = toolName;
 
             if (message.mcpName) {
               newRule.mcpName = message.mcpName;
               // Extract simple tool name
-              const simpleToolName = toolName.startsWith(`${message.mcpName}__`)
+              simpleToolName = toolName.startsWith(`${message.mcpName}__`)
                 ? toolName.slice(message.mcpName.length + 2)
                 : toolName;
               newRule.toolName = simpleToolName;
@@ -566,21 +601,44 @@ export function createPolicyUpdater(
             if (message.commandPrefix) {
               newRule.commandPrefix = message.commandPrefix;
             } else if (message.argsPattern) {
-              // message.argsPattern was already validated above
               newRule.argsPattern = message.argsPattern;
+            }
+
+            // De-duplicate: check if an identical rule already exists
+            const isDuplicate = existingData.rule.some((rule) => {
+              if (rule.toolName !== simpleToolName) return false;
+              if (rule.mcpName !== newRule.mcpName) return false;
+
+              if (newRule.commandPrefix) {
+                if (Array.isArray(newRule.commandPrefix)) {
+                  return (
+                    Array.isArray(rule.commandPrefix) &&
+                    newRule.commandPrefix.length ===
+                      rule.commandPrefix.length &&
+                    newRule.commandPrefix.every(
+                      // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+                      (p, i) => p === (rule.commandPrefix as string[])[i],
+                    )
+                  );
+                }
+                return rule.commandPrefix === newRule.commandPrefix;
+              }
+
+              return rule.argsPattern === newRule.argsPattern;
+            });
+
+            if (isDuplicate) {
+              return;
             }
 
             // Add to rules
             existingData.rule.push(newRule);
 
             // Serialize back to TOML
-            // @iarna/toml stringify might not produce beautiful output but it handles escaping correctly
             // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
             const newContent = toml.stringify(existingData as toml.JsonMap);
 
             // Atomic write: write to a unique tmp file then rename to the target file.
-            // Using a unique suffix avoids race conditions where concurrent processes
-            // overwrite each other's temporary files, leading to ENOENT errors on rename.
             const tmpSuffix = crypto.randomBytes(8).toString('hex');
             const tmpFile = `${policyFile}.${tmpSuffix}.tmp`;
 

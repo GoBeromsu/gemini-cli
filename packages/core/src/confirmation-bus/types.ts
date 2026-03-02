@@ -94,6 +94,11 @@ export type SerializableConfirmationDetails =
       commands?: string[];
     }
   | {
+      type: 'search';
+      title: string;
+      dirPath: string;
+    }
+  | {
       type: 'mcp';
       title: string;
       serverName: string;
@@ -121,6 +126,7 @@ export interface UpdatePolicy {
   argsPattern?: string;
   commandPrefix?: string | string[];
   mcpName?: string;
+  isSensitive?: boolean;
 }
 
 export interface ToolPolicyRejection {

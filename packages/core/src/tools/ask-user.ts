@@ -36,6 +36,7 @@ export class AskUserTool extends BaseDeclarativeTool<
       Kind.Communicate,
       ASK_USER_DEFINITION.base.parametersJsonSchema,
       messageBus,
+      { isOutputMarkdown: true, canUpdateOutput: false, isSensitive: false },
     );
   }
 
@@ -87,10 +88,21 @@ export class AskUserTool extends BaseDeclarativeTool<
   protected createInvocation(
     params: AskUserParams,
     messageBus: MessageBus,
-    toolName: string,
-    toolDisplayName: string,
+    _toolName?: string,
+    _toolDisplayName?: string,
+    _serverName?: string,
+    _toolAnnotations?: Record<string, unknown>,
+    isSensitive?: boolean,
   ): AskUserInvocation {
-    return new AskUserInvocation(params, messageBus, toolName, toolDisplayName);
+    return new AskUserInvocation(
+      params,
+      messageBus,
+      _toolName,
+      _toolDisplayName,
+      _serverName,
+      _toolAnnotations,
+      isSensitive,
+    );
   }
 
   override async validateBuildAndExecute(
@@ -121,6 +133,25 @@ export class AskUserInvocation extends BaseToolInvocation<
 > {
   private confirmationOutcome: ToolConfirmationOutcome | null = null;
   private userAnswers: { [questionIndex: string]: string } = {};
+  constructor(
+    params: AskUserParams,
+    messageBus: MessageBus,
+    _toolName?: string,
+    _toolDisplayName?: string,
+    _serverName?: string,
+    _toolAnnotations?: Record<string, unknown>,
+    isSensitive: boolean = false,
+  ) {
+    super(
+      params,
+      messageBus,
+      _toolName,
+      _toolDisplayName,
+      _serverName,
+      _toolAnnotations,
+      isSensitive,
+    );
+  }
 
   override async shouldConfirmExecute(
     _abortSignal: AbortSignal,

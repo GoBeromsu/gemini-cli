@@ -10,13 +10,13 @@ import fsPromises from 'node:fs/promises';
 import path from 'node:path';
 import { spawn } from 'node:child_process';
 import { globStream } from 'glob';
-import type { ToolInvocation, ToolResult } from './tools.js';
+import type { ToolInvocation, ToolResult, ToolCallConfirmationDetails, ToolSearchConfirmationDetails } from './tools.js';
 import { execStreaming } from '../utils/shell-utils.js';
 import {
   DEFAULT_TOTAL_MAX_MATCHES,
   DEFAULT_SEARCH_TIMEOUT_MS,
 } from './constants.js';
-import { BaseDeclarativeTool, BaseToolInvocation, Kind } from './tools.js';
+import { BaseDeclarativeTool, BaseToolInvocation, Kind, ToolConfirmationOutcome } from './tools.js';
 import { makeRelative, shortenPath } from '../utils/paths.js';
 import { getErrorMessage, isNodeError } from '../utils/errors.js';
 import { isGitRepository } from '../utils/gitUtils.js';
@@ -76,15 +76,25 @@ class GrepToolInvocation extends BaseToolInvocation<
   ToolResult
 > {
   private readonly fileExclusions: FileExclusions;
-
   constructor(
     private readonly config: Config,
     params: GrepToolParams,
     messageBus: MessageBus,
     _toolName?: string,
     _toolDisplayName?: string,
+    _serverName?: string,
+    _toolAnnotations?: Record<string, unknown>,
+    isSensitive: boolean = false,
   ) {
-    super(params, messageBus, _toolName, _toolDisplayName);
+    super(
+      params,
+      messageBus,
+      _toolName,
+      _toolDisplayName,
+      _serverName,
+      _toolAnnotations,
+      isSensitive,
+    );
     this.fileExclusions = config.getFileExclusions();
   }
 
@@ -581,6 +591,24 @@ class GrepToolInvocation extends BaseToolInvocation<
     }
     return description;
   }
+
+  protected override async getConfirmationDetails(
+    _abortSignal: AbortSignal,
+  ): Promise<ToolCallConfirmationDetails | false> {
+    if (!this.messageBus) {
+      return false;
+    }
+
+    const details: ToolSearchConfirmationDetails = {
+      type: 'search',
+      title: `Confirm: ${this._toolDisplayName || this._toolName}`,
+      dirPath: this.params.dir_path ?? '.',
+      onConfirm: async (outcome: ToolConfirmationOutcome) => {
+        await this.publishPolicyUpdate(outcome);
+      },
+    };
+    return details;
+  }
 }
 
 /**
@@ -599,8 +627,7 @@ export class GrepTool extends BaseDeclarativeTool<GrepToolParams, ToolResult> {
       Kind.Search,
       GREP_DEFINITION.base.parametersJsonSchema,
       messageBus,
-      true,
-      false,
+      { isOutputMarkdown: true, canUpdateOutput: false, isSensitive: true },
     );
   }
 
@@ -676,6 +703,9 @@ export class GrepTool extends BaseDeclarativeTool<GrepToolParams, ToolResult> {
     messageBus: MessageBus,
     _toolName?: string,
     _toolDisplayName?: string,
+    _serverName?: string,
+    _toolAnnotations?: Record<string, unknown>,
+    isSensitive?: boolean,
   ): ToolInvocation<GrepToolParams, ToolResult> {
     return new GrepToolInvocation(
       this.config,
@@ -683,6 +713,9 @@ export class GrepTool extends BaseDeclarativeTool<GrepToolParams, ToolResult> {
       messageBus,
       _toolName,
       _toolDisplayName,
+      _serverName,
+      _toolAnnotations,
+      isSensitive,
     );
   }
 

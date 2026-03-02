@@ -50,8 +50,7 @@ export class SubagentTool extends BaseDeclarativeTool<AgentInputs, ToolResult> {
       Kind.Agent,
       inputSchema,
       messageBus,
-      /* isOutputMarkdown */ true,
-      /* canUpdateOutput */ true,
+      { isOutputMarkdown: true, canUpdateOutput: true },
     );
   }
 
@@ -107,6 +106,9 @@ export class SubagentTool extends BaseDeclarativeTool<AgentInputs, ToolResult> {
     messageBus: MessageBus,
     _toolName?: string,
     _toolDisplayName?: string,
+    _serverName?: string,
+    _toolAnnotations?: Record<string, unknown>,
+    isSensitive?: boolean,
   ): ToolInvocation<AgentInputs, ToolResult> {
     return new SubAgentInvocation(
       params,
@@ -115,6 +117,9 @@ export class SubagentTool extends BaseDeclarativeTool<AgentInputs, ToolResult> {
       messageBus,
       _toolName,
       _toolDisplayName,
+      _serverName,
+      _toolAnnotations,
+      isSensitive,
     );
   }
 }
@@ -129,12 +134,18 @@ class SubAgentInvocation extends BaseToolInvocation<AgentInputs, ToolResult> {
     messageBus: MessageBus,
     _toolName?: string,
     _toolDisplayName?: string,
+    _serverName?: string,
+    _toolAnnotations?: Record<string, unknown>,
+    isSensitive: boolean = false,
   ) {
     super(
       params,
       messageBus,
       _toolName ?? definition.name,
       _toolDisplayName ?? definition.displayName ?? definition.name,
+      _serverName,
+      _toolAnnotations,
+      isSensitive,
     );
     this.startIndex = config.userHintService.getLatestHintIndex();
   }

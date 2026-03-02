@@ -534,6 +534,7 @@ export interface ConfigParameters {
   policyEngineConfig?: PolicyEngineConfig;
   directWebFetch?: boolean;
   policyUpdateConfirmationRequest?: PolicyUpdateConfirmationRequest;
+  autoAddPolicy?: boolean;
   output?: OutputSettings;
   gemmaModelRouter?: GemmaModelRouterSettings;
   disableModelRouterForAuth?: AuthType[];
@@ -726,6 +727,7 @@ export class Config implements McpContext {
   private policyUpdateConfirmationRequest:
     | PolicyUpdateConfirmationRequest
     | undefined;
+  private readonly autoAddPolicy: boolean;
   private readonly outputSettings: OutputSettings;
 
   private readonly gemmaModelRouter: GemmaModelRouterSettings;
@@ -961,6 +963,7 @@ export class Config implements McpContext {
     });
     this.policyUpdateConfirmationRequest =
       params.policyUpdateConfirmationRequest;
+    this.autoAddPolicy = params.autoAddPolicy ?? true;
 
     this.policyEngine = new PolicyEngine(
       {
@@ -1941,6 +1944,10 @@ export class Config implements McpContext {
     | PolicyUpdateConfirmationRequest
     | undefined {
     return this.policyUpdateConfirmationRequest;
+  }
+
+  getAutoAddPolicy(): boolean {
+    return this.autoAddPolicy;
   }
 
   /**

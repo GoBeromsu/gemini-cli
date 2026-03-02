@@ -85,8 +85,9 @@ export class RemoteAgentInvocation extends BaseToolInvocation<
     private readonly definition: RemoteAgentDefinition,
     params: AgentInputs,
     messageBus: MessageBus,
-    _toolName?: string,
-    _toolDisplayName?: string,
+    _serverName?: string,
+    _toolAnnotations?: Record<string, unknown>,
+    isSensitive: boolean = false,
   ) {
     const query = params['query'] ?? DEFAULT_QUERY_STRING;
     if (typeof query !== 'string') {
@@ -98,8 +99,11 @@ export class RemoteAgentInvocation extends BaseToolInvocation<
     super(
       { query },
       messageBus,
-      _toolName ?? definition.name,
-      _toolDisplayName ?? definition.displayName,
+      definition.name,
+      definition.displayName,
+      _serverName,
+      _toolAnnotations,
+      isSensitive,
     );
   }
 

@@ -13,6 +13,12 @@ import { ReadFileTool } from './read-file.js';
 import { makeFakeConfig } from '../test-utils/config.js';
 
 class TestToolInvocation implements ToolInvocation<object, ToolResult> {
+  readonly _toolName?: string;
+  readonly _toolDisplayName?: string;
+  readonly _serverName?: string;
+  readonly _toolAnnotations?: Record<string, unknown>;
+  readonly isSensitive: boolean = false;
+
   constructor(
     readonly params: object,
     private readonly executeFn: () => Promise<ToolResult>,
@@ -46,8 +52,7 @@ class TestTool extends DeclarativeTool<object, ToolResult> {
       Kind.Other,
       {},
       createMockMessageBus(),
-      true, // isOutputMarkdown
-      false, // canUpdateOutput
+      { isOutputMarkdown: true, canUpdateOutput: false },
     );
     this.buildFn = buildFn;
   }
@@ -257,13 +262,22 @@ describe('Tools Read-Only property', () => {
       }
     }
 
-    const mutator = new MyTool('m', 'M', 'd', Kind.Edit, {}, bus);
+    const mutator = new MyTool('m', 'M', 'd', Kind.Edit, {}, bus, {
+      isOutputMarkdown: true,
+      canUpdateOutput: false,
+    });
     expect(mutator.isReadOnly).toBe(false);
 
-    const reader = new MyTool('r', 'R', 'd', Kind.Read, {}, bus);
+    const reader = new MyTool('r', 'R', 'd', Kind.Read, {}, bus, {
+      isOutputMarkdown: true,
+      canUpdateOutput: false,
+    });
     expect(reader.isReadOnly).toBe(true);
 
-    const searcher = new MyTool('s', 'S', 'd', Kind.Search, {}, bus);
+    const searcher = new MyTool('s', 'S', 'd', Kind.Search, {}, bus, {
+      isOutputMarkdown: true,
+      canUpdateOutput: false,
+    });
     expect(searcher.isReadOnly).toBe(true);
   });
 });

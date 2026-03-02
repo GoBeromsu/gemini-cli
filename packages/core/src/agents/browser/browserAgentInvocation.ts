@@ -44,15 +44,19 @@ export class BrowserAgentInvocation extends BaseToolInvocation<
     private readonly config: Config,
     params: AgentInputs,
     messageBus: MessageBus,
-    _toolName?: string,
-    _toolDisplayName?: string,
+    _serverName?: string,
+    _toolAnnotations?: Record<string, unknown>,
+    isSensitive: boolean = false,
   ) {
     // Note: BrowserAgentDefinition is a factory function, so we use hardcoded names
     super(
       params,
       messageBus,
-      _toolName ?? 'browser_agent',
-      _toolDisplayName ?? 'Browser Agent',
+      'browser_agent',
+      'Browser Agent',
+      _serverName,
+      _toolAnnotations,
+      isSensitive,
     );
   }
 

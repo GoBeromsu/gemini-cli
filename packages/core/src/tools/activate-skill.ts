@@ -37,13 +37,24 @@ class ActivateSkillToolInvocation extends BaseToolInvocation<
   private cachedFolderStructure: string | undefined;
 
   constructor(
-    private config: Config,
+    private readonly config: Config,
     params: ActivateSkillToolParams,
     messageBus: MessageBus,
     _toolName?: string,
     _toolDisplayName?: string,
+    _serverName?: string,
+    _toolAnnotations?: Record<string, unknown>,
+    isSensitive: boolean = false,
   ) {
-    super(params, messageBus, _toolName, _toolDisplayName);
+    super(
+      params,
+      messageBus,
+      _toolName,
+      _toolDisplayName,
+      _serverName,
+      _toolAnnotations,
+      isSensitive,
+    );
   }
 
   getDescription(): string {
@@ -161,7 +172,7 @@ export class ActivateSkillTool extends BaseDeclarativeTool<
   static readonly Name = ACTIVATE_SKILL_TOOL_NAME;
 
   constructor(
-    private config: Config,
+    private readonly config: Config,
     messageBus: MessageBus,
   ) {
     const skills = config.getSkillManager().getSkills();
@@ -175,8 +186,7 @@ export class ActivateSkillTool extends BaseDeclarativeTool<
       Kind.Other,
       definition.base.parametersJsonSchema,
       messageBus,
-      true,
-      false,
+      { isOutputMarkdown: true, canUpdateOutput: false, isSensitive: false },
     );
   }
 
@@ -185,6 +195,9 @@ export class ActivateSkillTool extends BaseDeclarativeTool<
     messageBus: MessageBus,
     _toolName?: string,
     _toolDisplayName?: string,
+    _serverName?: string,
+    _toolAnnotations?: Record<string, unknown>,
+    isSensitive?: boolean,
   ): ToolInvocation<ActivateSkillToolParams, ToolResult> {
     return new ActivateSkillToolInvocation(
       this.config,
@@ -192,6 +205,9 @@ export class ActivateSkillTool extends BaseDeclarativeTool<
       messageBus,
       _toolName,
       _toolDisplayName ?? 'Activate Skill',
+      _serverName,
+      _toolAnnotations,
+      isSensitive,
     );
   }
 

@@ -149,10 +149,21 @@ class MemoryToolInvocation extends BaseToolInvocation<
   constructor(
     params: SaveMemoryParams,
     messageBus: MessageBus,
-    toolName?: string,
-    displayName?: string,
+    _toolName?: string,
+    _toolDisplayName?: string,
+    _serverName?: string,
+    _toolAnnotations?: Record<string, unknown>,
+    isSensitive: boolean = false,
   ) {
-    super(params, messageBus, toolName, displayName);
+    super(
+      params,
+      messageBus,
+      _toolName,
+      _toolDisplayName,
+      _serverName,
+      _toolAnnotations,
+      isSensitive,
+    );
   }
 
   getDescription(): string {
@@ -283,8 +294,7 @@ export class MemoryTool
       Kind.Think,
       MEMORY_DEFINITION.base.parametersJsonSchema,
       messageBus,
-      true,
-      false,
+      { isOutputMarkdown: true, canUpdateOutput: false },
     );
   }
 
@@ -303,12 +313,18 @@ export class MemoryTool
     messageBus: MessageBus,
     toolName?: string,
     displayName?: string,
+    _serverName?: string,
+    _toolAnnotations?: Record<string, unknown>,
+    isSensitive?: boolean,
   ) {
     return new MemoryToolInvocation(
       params,
       messageBus,
       toolName ?? this.name,
       displayName ?? this.displayName,
+      _serverName,
+      _toolAnnotations,
+      isSensitive,
     );
   }
 

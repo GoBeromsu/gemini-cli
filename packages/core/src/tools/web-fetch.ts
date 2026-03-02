@@ -178,8 +178,19 @@ class WebFetchToolInvocation extends BaseToolInvocation<
     messageBus: MessageBus,
     _toolName?: string,
     _toolDisplayName?: string,
+    _serverName?: string,
+    _toolAnnotations?: Record<string, unknown>,
+    isSensitive: boolean = false,
   ) {
-    super(params, messageBus, _toolName, _toolDisplayName);
+    super(
+      params,
+      messageBus,
+      _toolName,
+      _toolDisplayName,
+      _serverName,
+      _toolAnnotations,
+      isSensitive,
+    );
   }
 
   private async executeFallback(signal: AbortSignal): Promise<ToolResult> {
@@ -687,8 +698,7 @@ export class WebFetchTool extends BaseDeclarativeTool<
       Kind.Fetch,
       WEB_FETCH_DEFINITION.base.parametersJsonSchema,
       messageBus,
-      true, // isOutputMarkdown
-      false, // canUpdateOutput
+      { isOutputMarkdown: true, canUpdateOutput: false, isSensitive: true },
     );
   }
 
@@ -729,6 +739,9 @@ export class WebFetchTool extends BaseDeclarativeTool<
     messageBus: MessageBus,
     _toolName?: string,
     _toolDisplayName?: string,
+    _serverName?: string,
+    _toolAnnotations?: Record<string, unknown>,
+    isSensitive?: boolean,
   ): ToolInvocation<WebFetchToolParams, ToolResult> {
     return new WebFetchToolInvocation(
       this.config,
@@ -736,6 +749,9 @@ export class WebFetchTool extends BaseDeclarativeTool<
       messageBus,
       _toolName,
       _toolDisplayName,
+      _serverName,
+      _toolAnnotations,
+      isSensitive,
     );
   }
 

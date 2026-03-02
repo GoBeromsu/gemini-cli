@@ -104,22 +104,12 @@ export async function updatePolicy(
 
   // Specialized Tools (MCP)
   if (confirmationDetails?.type === 'mcp') {
-    await handleMcpPolicyUpdate(
-      tool,
-      outcome,
-      confirmationDetails,
-      deps.messageBus,
-    );
+    await handleMcpPolicyUpdate(tool, outcome, confirmationDetails, deps);
     return;
   }
 
   // Generic Fallback (Shell, Info, etc.)
-  await handleStandardPolicyUpdate(
-    tool,
-    outcome,
-    confirmationDetails,
-    deps.messageBus,
-  );
+  await handleStandardPolicyUpdate(tool, outcome, confirmationDetails, deps);
 }
 
 /**
@@ -147,25 +137,77 @@ async function handleStandardPolicyUpdate(
   tool: AnyDeclarativeTool,
   outcome: ToolConfirmationOutcome,
   confirmationDetails: SerializableConfirmationDetails | undefined,
-  messageBus: MessageBus,
+  deps: { config: Config; messageBus: MessageBus },
 ): Promise<void> {
-  if (
+  const isAlwaysOutcome =
     outcome === ToolConfirmationOutcome.ProceedAlways ||
-    outcome === ToolConfirmationOutcome.ProceedAlwaysAndSave
-  ) {
-    const options: PolicyUpdateOptions = {};
+    outcome === ToolConfirmationOutcome.ProceedAlwaysAndSave;
+
+  if (isAlwaysOutcome) {
+    const persist =
+      outcome === ToolConfirmationOutcome.ProceedAlwaysAndSave ||
+      deps.config.getAutoAddPolicy();
+
+    const options: PolicyUpdateOptions = {
+      isSensitive: tool.isSensitive,
+    };
 
     if (confirmationDetails?.type === 'exec') {
       options.commandPrefix = confirmationDetails.rootCommands;
     }
 
-    await messageBus.publish({
+    let argsPattern: string | undefined;
+    if (tool.isSensitive && confirmationDetails?.type === 'edit') {
+      argsPattern = generateArgsPattern(tool.name, confirmationDetails);
+    } else if (tool.isSensitive && confirmationDetails?.type === 'info') {
+      argsPattern = generateArgsPattern(tool.name, confirmationDetails);
+    }
+
+    await deps.messageBus.publish({
       type: MessageBusType.UPDATE_POLICY,
       toolName: tool.name,
-      persist: outcome === ToolConfirmationOutcome.ProceedAlwaysAndSave,
+      persist,
+      argsPattern,
       ...options,
     });
   }
+}
+
+/**
+ * Generates a specific argsPattern regex for sensitive tools based on the
+ * actual parameters used in the tool call.
+ */
+function generateArgsPattern(
+  toolName: string,
+  details: SerializableConfirmationDetails,
+): string | undefined {
+  if (details.type === 'edit' && details.filePath) {
+    const escapedPath = details.filePath.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    return `.*"file_path":"${escapedPath}".*`;
+  }
+
+  if (details.type === 'search' && details.dirPath) {
+    const escapedPath = details.dirPath.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    // Most search tools use 'dir_path' or similar
+    return `.*"dir_path":"${escapedPath}".*`;
+  }
+
+  if (details.type === 'info' && details.urls && details.urls.length > 0) {
+    const escapedUrls = details.urls
+      .map((url) => url.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'))
+      .join('|');
+    return `.*(${escapedUrls}).*`;
+  }
+
+  // Fallback for tools where we can't easily generate a specific pattern
+  // but we still want some protection.
+  if (toolName === 'web_search' && 'prompt' in details && details.prompt) {
+    // If it's a web search, we might want to allow the specific query.
+    // However, prompts can be complex, so we'll be conservative.
+    return undefined;
+  }
+
+  return undefined;
 }
 
 /**
@@ -179,7 +221,7 @@ async function handleMcpPolicyUpdate(
     SerializableConfirmationDetails,
     { type: 'mcp' }
   >,
-  messageBus: MessageBus,
+  deps: { config: Config; messageBus: MessageBus },
 ): Promise<void> {
   const isMcpAlways =
     outcome === ToolConfirmationOutcome.ProceedAlways ||
@@ -192,17 +234,20 @@ async function handleMcpPolicyUpdate(
   }
 
   let toolName = tool.name;
-  const persist = outcome === ToolConfirmationOutcome.ProceedAlwaysAndSave;
+  const persist =
+    outcome === ToolConfirmationOutcome.ProceedAlwaysAndSave ||
+    deps.config.getAutoAddPolicy();
 
   // If "Always allow all tools from this server", use the wildcard pattern
   if (outcome === ToolConfirmationOutcome.ProceedAlwaysServer) {
     toolName = `${confirmationDetails.serverName}__*`;
   }
 
-  await messageBus.publish({
+  await deps.messageBus.publish({
     type: MessageBusType.UPDATE_POLICY,
     toolName,
     mcpName: confirmationDetails.serverName,
     persist,
+    isSensitive: tool.isSensitive,
   });
 }

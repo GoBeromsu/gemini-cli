@@ -93,6 +93,7 @@ export class DiscoveredMCPToolInvocation extends BaseToolInvocation<
     private readonly toolDescription?: string,
     private readonly toolParameterSchema?: unknown,
     toolAnnotationsData?: Record<string, unknown>,
+    isSensitive: boolean = false,
   ) {
     // Use composite format for policy checks: serverName__toolName
     // This enables server wildcards (e.g., "google-workspace__*")
@@ -105,13 +106,14 @@ export class DiscoveredMCPToolInvocation extends BaseToolInvocation<
       displayName,
       serverName,
       toolAnnotationsData,
+      isSensitive,
     );
   }
 
   protected override getPolicyUpdateOptions(
     _outcome: ToolConfirmationOutcome,
   ): PolicyUpdateOptions | undefined {
-    return { mcpName: this.serverName };
+    return { mcpName: this.serverName, isSensitive: this.isSensitive };
   }
 
   protected override async getConfirmationDetails(
@@ -271,6 +273,7 @@ export class DiscoveredMCPTool extends BaseDeclarativeTool<
     override readonly extensionName?: string,
     override readonly extensionId?: string,
     private readonly _toolAnnotations?: Record<string, unknown>,
+    isSensitive?: boolean,
   ) {
     super(
       nameOverride ?? generateValidName(serverToolName),
@@ -279,10 +282,13 @@ export class DiscoveredMCPTool extends BaseDeclarativeTool<
       Kind.Other,
       parameterSchema,
       messageBus,
-      true, // isOutputMarkdown
-      false, // canUpdateOutput,
-      extensionName,
-      extensionId,
+      {
+        isOutputMarkdown: true,
+        canUpdateOutput: false,
+        extensionName,
+        extensionId,
+        isSensitive,
+      },
     );
     this._isReadOnly = isReadOnly;
   }
@@ -331,6 +337,9 @@ export class DiscoveredMCPTool extends BaseDeclarativeTool<
     messageBus: MessageBus,
     _toolName?: string,
     _displayName?: string,
+    _serverName?: string,
+    _toolAnnotations?: Record<string, unknown>,
+    isSensitive?: boolean,
   ): ToolInvocation<ToolParams, ToolResult> {
     return new DiscoveredMCPToolInvocation(
       this.mcpTool,
@@ -344,6 +353,7 @@ export class DiscoveredMCPTool extends BaseDeclarativeTool<
       this.description,
       this.parameterSchema,
       this._toolAnnotations,
+      isSensitive,
     );
   }
 }

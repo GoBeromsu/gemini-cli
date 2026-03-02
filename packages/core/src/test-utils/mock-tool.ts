@@ -48,8 +48,21 @@ class MockToolInvocation extends BaseToolInvocation<
     private readonly tool: MockTool,
     params: { [key: string]: unknown },
     messageBus: MessageBus,
+    _toolName?: string,
+    _toolDisplayName?: string,
+    _serverName?: string,
+    _toolAnnotations?: Record<string, unknown>,
+    isSensitive: boolean = false,
   ) {
-    super(params, messageBus, tool.name, tool.displayName);
+    super(
+      params,
+      messageBus,
+      _toolName ?? tool.name,
+      _toolDisplayName ?? tool.displayName,
+      _serverName,
+      _toolAnnotations,
+      isSensitive,
+    );
   }
 
   execute(
@@ -99,8 +112,10 @@ export class MockTool extends BaseDeclarativeTool<
       Kind.Other,
       options.params,
       options.messageBus ?? createMockMessageBus(),
-      options.isOutputMarkdown ?? false,
-      options.canUpdateOutput ?? false,
+      {
+        isOutputMarkdown: options.isOutputMarkdown ?? false,
+        canUpdateOutput: options.canUpdateOutput ?? false,
+      },
     );
 
     if (options.shouldConfirmExecute) {
@@ -125,8 +140,20 @@ export class MockTool extends BaseDeclarativeTool<
     messageBus: MessageBus,
     _toolName?: string,
     _toolDisplayName?: string,
+    _serverName?: string,
+    _toolAnnotations?: Record<string, unknown>,
+    isSensitive?: boolean,
   ): ToolInvocation<{ [key: string]: unknown }, ToolResult> {
-    return new MockToolInvocation(this, params, messageBus);
+    return new MockToolInvocation(
+      this,
+      params,
+      messageBus,
+      _toolName,
+      _toolDisplayName,
+      _serverName,
+      _toolAnnotations,
+      isSensitive,
+    );
   }
 }
 
@@ -148,8 +175,21 @@ export class MockModifiableToolInvocation extends BaseToolInvocation<
     private readonly tool: MockModifiableTool,
     params: Record<string, unknown>,
     messageBus: MessageBus,
+    _toolName?: string,
+    _toolDisplayName?: string,
+    _serverName?: string,
+    _toolAnnotations?: Record<string, unknown>,
+    isSensitive: boolean = false,
   ) {
-    super(params, messageBus, tool.name, tool.displayName);
+    super(
+      params,
+      messageBus,
+      _toolName ?? tool.name,
+      _toolDisplayName ?? tool.displayName,
+      _serverName,
+      _toolAnnotations,
+      isSensitive,
+    );
   }
 
   async execute(_abortSignal: AbortSignal): Promise<ToolResult> {
@@ -209,8 +249,7 @@ export class MockModifiableTool
         properties: { param: { type: 'string' } },
       },
       createMockMessageBus(),
-      true,
-      false,
+      { isOutputMarkdown: true, canUpdateOutput: false },
     );
   }
 
@@ -234,7 +273,19 @@ export class MockModifiableTool
     messageBus: MessageBus,
     _toolName?: string,
     _toolDisplayName?: string,
+    _serverName?: string,
+    _toolAnnotations?: Record<string, unknown>,
+    isSensitive?: boolean,
   ): ToolInvocation<Record<string, unknown>, ToolResult> {
-    return new MockModifiableToolInvocation(this, params, messageBus);
+    return new MockModifiableToolInvocation(
+      this,
+      params,
+      messageBus,
+      _toolName,
+      _toolDisplayName,
+      _serverName,
+      _toolAnnotations,
+      isSensitive,
+    );
   }
 }

@@ -48,8 +48,7 @@ export class SubagentToolWrapper extends BaseDeclarativeTool<
       Kind.Agent,
       definition.inputConfig.inputSchema,
       messageBus,
-      /* isOutputMarkdown */ true,
-      /* canUpdateOutput */ true,
+      { isOutputMarkdown: true, canUpdateOutput: true },
     );
   }
 
@@ -67,6 +66,9 @@ export class SubagentToolWrapper extends BaseDeclarativeTool<
     messageBus: MessageBus,
     _toolName?: string,
     _toolDisplayName?: string,
+    _serverName?: string,
+    _toolAnnotations?: Record<string, unknown>,
+    isSensitive?: boolean,
   ): ToolInvocation<AgentInputs, ToolResult> {
     const definition = this.definition;
     const effectiveMessageBus = messageBus;
@@ -76,8 +78,9 @@ export class SubagentToolWrapper extends BaseDeclarativeTool<
         definition,
         params,
         effectiveMessageBus,
-        _toolName,
-        _toolDisplayName,
+        _serverName,
+        _toolAnnotations,
+        isSensitive,
       );
     }
 
@@ -87,8 +90,9 @@ export class SubagentToolWrapper extends BaseDeclarativeTool<
         this.config,
         params,
         effectiveMessageBus,
-        _toolName,
-        _toolDisplayName,
+        _serverName,
+        _toolAnnotations,
+        isSensitive,
       );
     }
 
@@ -97,8 +101,9 @@ export class SubagentToolWrapper extends BaseDeclarativeTool<
       this.config,
       params,
       effectiveMessageBus,
-      _toolName,
-      _toolDisplayName,
+      _serverName,
+      _toolAnnotations,
+      isSensitive,
     );
   }
 }

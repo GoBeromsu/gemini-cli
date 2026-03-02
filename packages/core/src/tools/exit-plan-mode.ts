@@ -36,7 +36,7 @@ export class ExitPlanModeTool extends BaseDeclarativeTool<
   ToolResult
 > {
   constructor(
-    private config: Config,
+    private readonly config: Config,
     messageBus: MessageBus,
   ) {
     const plansDir = config.storage.getPlansDir();
@@ -48,6 +48,7 @@ export class ExitPlanModeTool extends BaseDeclarativeTool<
       Kind.Plan,
       definition.base.parametersJsonSchema,
       messageBus,
+      { isOutputMarkdown: true, canUpdateOutput: false, isSensitive: false },
     );
   }
 
@@ -78,15 +79,21 @@ export class ExitPlanModeTool extends BaseDeclarativeTool<
   protected createInvocation(
     params: ExitPlanModeParams,
     messageBus: MessageBus,
-    toolName: string,
-    toolDisplayName: string,
+    _toolName?: string,
+    _toolDisplayName?: string,
+    _serverName?: string,
+    _toolAnnotations?: Record<string, unknown>,
+    isSensitive?: boolean,
   ): ExitPlanModeInvocation {
     return new ExitPlanModeInvocation(
+      this.config,
       params,
       messageBus,
-      toolName,
-      toolDisplayName,
-      this.config,
+      _toolName,
+      _toolDisplayName,
+      _serverName,
+      _toolAnnotations,
+      isSensitive,
     );
   }
 
@@ -105,13 +112,24 @@ export class ExitPlanModeInvocation extends BaseToolInvocation<
   private planValidationError: string | null = null;
 
   constructor(
+    private readonly config: Config,
     params: ExitPlanModeParams,
     messageBus: MessageBus,
-    toolName: string,
-    toolDisplayName: string,
-    private config: Config,
+    _toolName?: string,
+    _toolDisplayName?: string,
+    _serverName?: string,
+    _toolAnnotations?: Record<string, unknown>,
+    isSensitive: boolean = false,
   ) {
-    super(params, messageBus, toolName, toolDisplayName);
+    super(
+      params,
+      messageBus,
+      _toolName,
+      _toolDisplayName,
+      _serverName,
+      _toolAnnotations,
+      isSensitive,
+    );
   }
 
   override async shouldConfirmExecute(

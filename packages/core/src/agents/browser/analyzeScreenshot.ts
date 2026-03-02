@@ -67,8 +67,20 @@ class AnalyzeScreenshotInvocation extends BaseToolInvocation<
     private readonly config: Config,
     params: Record<string, unknown>,
     messageBus: MessageBus,
+    _toolDisplayName?: string,
+    _serverName?: string,
+    _toolAnnotations?: Record<string, unknown>,
+    isSensitive: boolean = false,
   ) {
-    super(params, messageBus, 'analyze_screenshot', 'Analyze Screenshot');
+    super(
+      params,
+      messageBus,
+      'analyze_screenshot',
+      _toolDisplayName ?? 'Analyze Screenshot',
+      _serverName,
+      _toolAnnotations,
+      isSensitive,
+    );
   }
 
   getDescription(): string {
@@ -221,8 +233,7 @@ class AnalyzeScreenshotTool extends DeclarativeTool<
         required: ['instruction'],
       },
       messageBus,
-      true, // isOutputMarkdown
-      false, // canUpdateOutput
+      { isOutputMarkdown: true, canUpdateOutput: false },
     );
   }
 
@@ -234,6 +245,10 @@ class AnalyzeScreenshotTool extends DeclarativeTool<
       this.config,
       params,
       this.messageBus,
+      this.displayName,
+      undefined, // _serverName
+      undefined, // _toolAnnotations
+      this.isSensitive,
     );
   }
 }

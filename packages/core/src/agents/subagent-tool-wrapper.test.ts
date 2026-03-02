@@ -122,8 +122,9 @@ describe('SubagentToolWrapper', () => {
         mockConfig,
         params,
         mockMessageBus,
-        mockDefinition.name,
-        mockDefinition.displayName,
+        undefined, // _serverName
+        undefined, // _toolAnnotations
+        false, // isSensitive
       );
     });
 
@@ -147,8 +148,9 @@ describe('SubagentToolWrapper', () => {
         mockConfig,
         params,
         specificMessageBus,
-        mockDefinition.name,
-        mockDefinition.displayName,
+        undefined, // _serverName
+        undefined, // _toolAnnotations
+        false, // isSensitive
       );
     });
 

@@ -76,19 +76,6 @@ describe('BrowserAgentInvocation', () => {
 
       expect(invocation['_toolName']).toBe('browser_agent');
     });
-
-    it('should use custom tool name if provided', () => {
-      const invocation = new BrowserAgentInvocation(
-        mockConfig,
-        mockParams,
-        mockMessageBus,
-        'custom_name',
-        'Custom Display Name',
-      );
-
-      expect(invocation['_toolName']).toBe('custom_name');
-      expect(invocation['_toolDisplayName']).toBe('Custom Display Name');
-    });
   });
 
   describe('getDescription', () => {

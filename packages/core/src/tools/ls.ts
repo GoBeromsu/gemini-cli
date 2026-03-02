@@ -7,9 +7,19 @@
 import type { MessageBus } from '../confirmation-bus/message-bus.js';
 import fs from 'node:fs/promises';
 import path from 'node:path';
-import type { ToolInvocation, ToolResult } from './tools.js';
-import { BaseDeclarativeTool, BaseToolInvocation, Kind } from './tools.js';
-import { makeRelative, shortenPath } from '../utils/paths.js';
+import type {
+  ToolInvocation,
+  ToolResult,
+  ToolCallConfirmationDetails,
+  ToolSearchConfirmationDetails,
+} from './tools.js';
+import {
+  BaseDeclarativeTool,
+  BaseToolInvocation,
+  Kind,
+  ToolConfirmationOutcome,
+} from './tools.js';
+import { makeRelative, lightenPath } from '../utils/paths.js';
 import type { Config } from '../config/config.js';
 import { DEFAULT_FILE_FILTERING_OPTIONS } from '../config/constants.js';
 import { ToolErrorType } from './tool-error.js';
@@ -78,8 +88,19 @@ class LSToolInvocation extends BaseToolInvocation<LSToolParams, ToolResult> {
     messageBus: MessageBus,
     _toolName?: string,
     _toolDisplayName?: string,
+    _serverName?: string,
+    _toolAnnotations?: Record<string, unknown>,
+    isSensitive: boolean = false,
   ) {
-    super(params, messageBus, _toolName, _toolDisplayName);
+    super(
+      params,
+      messageBus,
+      _toolName,
+      _toolDisplayName,
+      _serverName,
+      _toolAnnotations,
+      isSensitive,
+    );
   }
 
   /**
@@ -115,7 +136,26 @@ class LSToolInvocation extends BaseToolInvocation<LSToolParams, ToolResult> {
       this.params.dir_path,
       this.config.getTargetDir(),
     );
-    return shortenPath(relativePath);
+    return lightenPath(relativePath);
+  }
+
+  protected override async getConfirmationDetails(
+    _abortSignal: AbortSignal,
+  ): Promise<ToolCallConfirmationDetails | false> {
+    if (!this.messageBus) {
+      return false;
+    }
+
+    const details: ToolSearchConfirmationDetails = {
+      type: 'search',
+      title: `Confirm: ${this._toolDisplayName || this._toolName}`,
+      dirPath: this.params.dir_path,
+      onConfirm: async (outcome: ToolConfirmationOutcome) => {
+        await this.publishPolicyUpdate(outcome);
+      },
+    };
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+    return details;
   }
 
   // Helper for consistent error formatting
@@ -169,14 +209,14 @@ class LSToolInvocation extends BaseToolInvocation<LSToolParams, ToolResult> {
           `Error: Directory not found or inaccessible: ${resolvedDirPath}`,
           `Directory not found or inaccessible.`,
           ToolErrorType.FILE_NOT_FOUND,
-        );
+        ) as ToolResult;
       }
       if (!stats.isDirectory()) {
         return this.errorResult(
           `Error: Path is not a directory: ${resolvedDirPath}`,
           `Path is not a directory.`,
           ToolErrorType.PATH_IS_NOT_A_DIRECTORY,
-        );
+        ) as ToolResult;
       }
 
       const files = await fs.readdir(resolvedDirPath);
@@ -269,7 +309,7 @@ class LSToolInvocation extends BaseToolInvocation<LSToolParams, ToolResult> {
         errorMsg,
         'Failed to list directory.',
         ToolErrorType.LS_EXECUTION_ERROR,
-      );
+      ) as ToolResult;
     }
   }
 }
@@ -291,8 +331,7 @@ export class LSTool extends BaseDeclarativeTool<LSToolParams, ToolResult> {
       Kind.Search,
       LS_DEFINITION.base.parametersJsonSchema,
       messageBus,
-      true,
-      false,
+      { isOutputMarkdown: true, canUpdateOutput: false, isSensitive: true },
     );
   }
 
@@ -316,6 +355,9 @@ export class LSTool extends BaseDeclarativeTool<LSToolParams, ToolResult> {
     messageBus: MessageBus,
     _toolName?: string,
     _toolDisplayName?: string,
+    _serverName?: string,
+    _toolAnnotations?: Record<string, unknown>,
+    isSensitive?: boolean,
   ): ToolInvocation<LSToolParams, ToolResult> {
     return new LSToolInvocation(
       this.config,
@@ -323,6 +365,9 @@ export class LSTool extends BaseDeclarativeTool<LSToolParams, ToolResult> {
       messageBus ?? this.messageBus,
       _toolName,
       _toolDisplayName,
+      _serverName,
+      _toolAnnotations,
+      isSensitive,
     );
   }
 

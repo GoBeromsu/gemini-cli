@@ -75,6 +75,7 @@ export interface ToolInvocation<
 export interface PolicyUpdateOptions {
   commandPrefix?: string | string[];
   mcpName?: string;
+  isSensitive?: boolean;
 }
 
 /**
@@ -92,6 +93,7 @@ export abstract class BaseToolInvocation<
     readonly _toolDisplayName?: string,
     readonly _serverName?: string,
     readonly _toolAnnotations?: Record<string, unknown>,
+    readonly isSensitive: boolean = false,
   ) {}
 
   abstract getDescription(): string;
@@ -132,7 +134,7 @@ export abstract class BaseToolInvocation<
   protected getPolicyUpdateOptions(
     _outcome: ToolConfirmationOutcome,
   ): PolicyUpdateOptions | undefined {
-    return undefined;
+    return { isSensitive: this.isSensitive };
   }
 
   /**
@@ -349,6 +351,17 @@ export interface ToolBuilder<
 }
 
 /**
+ * Configuration options for a DeclarativeTool.
+ */
+export interface ToolOptions {
+  isOutputMarkdown?: boolean;
+  canUpdateOutput?: boolean;
+  isSensitive?: boolean;
+  extensionName?: string;
+  extensionId?: string;
+}
+
+/**
  * New base class for tools that separates validation from execution.
  * New tools should extend this class.
  */
@@ -357,6 +370,12 @@ export abstract class DeclarativeTool<
   TResult extends ToolResult,
 > implements ToolBuilder<TParams, TResult>
 {
+  readonly isOutputMarkdown: boolean;
+  readonly canUpdateOutput: boolean;
+  readonly isSensitive: boolean;
+  readonly extensionName?: string;
+  readonly extensionId?: string;
+
   constructor(
     readonly name: string,
     readonly displayName: string,
@@ -364,11 +383,14 @@ export abstract class DeclarativeTool<
     readonly kind: Kind,
     readonly parameterSchema: unknown,
     readonly messageBus: MessageBus,
-    readonly isOutputMarkdown: boolean = true,
-    readonly canUpdateOutput: boolean = false,
-    readonly extensionName?: string,
-    readonly extensionId?: string,
-  ) {}
+    options: ToolOptions = {},
+  ) {
+    this.isOutputMarkdown = options.isOutputMarkdown ?? true;
+    this.canUpdateOutput = options.canUpdateOutput ?? false;
+    this.isSensitive = options.isSensitive ?? false;
+    this.extensionName = options.extensionName;
+    this.extensionId = options.extensionId;
+  }
 
   get isReadOnly(): boolean {
     return READ_ONLY_KINDS.includes(this.kind);
@@ -508,6 +530,9 @@ export abstract class BaseDeclarativeTool<
       this.messageBus,
       this.name,
       this.displayName,
+      undefined, // _serverName
+      undefined, // _toolAnnotations
+      this.isSensitive,
     );
   }
 
@@ -533,6 +558,9 @@ export abstract class BaseDeclarativeTool<
     messageBus: MessageBus,
     _toolName?: string,
     _toolDisplayName?: string,
+    _serverName?: string,
+    _toolAnnotations?: Record<string, unknown>,
+    isSensitive?: boolean,
   ): ToolInvocation<TParams, TResult>;
 }
 
@@ -806,13 +834,21 @@ export interface ToolExitPlanModeConfirmationDetails {
   ) => Promise<void>;
 }
 
+export interface ToolSearchConfirmationDetails {
+  type: 'search';
+  title: string;
+  onConfirm: (outcome: ToolConfirmationOutcome) => Promise<void>;
+  dirPath: string;
+}
+
 export type ToolCallConfirmationDetails =
   | ToolEditConfirmationDetails
   | ToolExecuteConfirmationDetails
   | ToolMcpConfirmationDetails
   | ToolInfoConfirmationDetails
   | ToolAskUserConfirmationDetails
-  | ToolExitPlanModeConfirmationDetails;
+  | ToolExitPlanModeConfirmationDetails
+  | ToolSearchConfirmationDetails;
 
 export enum ToolConfirmationOutcome {
   ProceedOnce = 'proceed_once',

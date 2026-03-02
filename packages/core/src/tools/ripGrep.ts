@@ -9,8 +9,8 @@ import fs from 'node:fs';
 import fsPromises from 'node:fs/promises';
 import path from 'node:path';
 import { downloadRipGrep } from '@joshua.litt/get-ripgrep';
-import type { ToolInvocation, ToolResult } from './tools.js';
-import { BaseDeclarativeTool, BaseToolInvocation, Kind } from './tools.js';
+import type { ToolInvocation, ToolResult, ToolCallConfirmationDetails, ToolSearchConfirmationDetails } from './tools.js';
+import { BaseDeclarativeTool, BaseToolInvocation, Kind, ToolConfirmationOutcome } from './tools.js';
 import { ToolErrorType } from './tool-error.js';
 import { makeRelative, shortenPath } from '../utils/paths.js';
 import { getErrorMessage, isNodeError } from '../utils/errors.js';
@@ -167,8 +167,19 @@ class GrepToolInvocation extends BaseToolInvocation<
     messageBus: MessageBus,
     _toolName?: string,
     _toolDisplayName?: string,
+    _serverName?: string,
+    _toolAnnotations?: Record<string, unknown>,
+    isSensitive: boolean = false,
   ) {
-    super(params, messageBus, _toolName, _toolDisplayName);
+    super(
+      params,
+      messageBus,
+      _toolName,
+      _toolDisplayName,
+      _serverName,
+      _toolAnnotations,
+      isSensitive,
+    );
   }
 
   async execute(signal: AbortSignal): Promise<ToolResult> {
@@ -559,6 +570,24 @@ class GrepToolInvocation extends BaseToolInvocation<
     }
     return description;
   }
+
+  protected override async getConfirmationDetails(
+    _abortSignal: AbortSignal,
+  ): Promise<ToolCallConfirmationDetails | false> {
+    if (!this.messageBus) {
+      return false;
+    }
+
+    const details: ToolSearchConfirmationDetails = {
+      type: 'search',
+      title: `Confirm: ${this._toolDisplayName || this._toolName}`,
+      dirPath: this.params.dir_path ?? '.',
+      onConfirm: async (outcome: ToolConfirmationOutcome) => {
+        await this.publishPolicyUpdate(outcome);
+      },
+    };
+    return details;
+  }
 }
 
 /**
@@ -582,8 +611,7 @@ export class RipGrepTool extends BaseDeclarativeTool<
       Kind.Search,
       RIP_GREP_DEFINITION.base.parametersJsonSchema,
       messageBus,
-      true, // isOutputMarkdown
-      false, // canUpdateOutput
+      { isOutputMarkdown: true, canUpdateOutput: false, isSensitive: true },
     );
     this.fileDiscoveryService = new FileDiscoveryService(
       config.getTargetDir(),
@@ -665,6 +693,9 @@ export class RipGrepTool extends BaseDeclarativeTool<
     messageBus: MessageBus,
     _toolName?: string,
     _toolDisplayName?: string,
+    _serverName?: string,
+    _toolAnnotations?: Record<string, unknown>,
+    isSensitive?: boolean,
   ): ToolInvocation<RipGrepToolParams, ToolResult> {
     return new GrepToolInvocation(
       this.config,
@@ -673,6 +704,9 @@ export class RipGrepTool extends BaseDeclarativeTool<
       messageBus ?? this.messageBus,
       _toolName,
       _toolDisplayName,
+      _serverName,
+      _toolAnnotations,
+      isSensitive,
     );
   }
 

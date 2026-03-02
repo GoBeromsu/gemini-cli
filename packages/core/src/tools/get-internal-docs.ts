@@ -79,10 +79,20 @@ class GetInternalDocsInvocation extends BaseToolInvocation<
     messageBus: MessageBus,
     _toolName?: string,
     _toolDisplayName?: string,
+    _serverName?: string,
+    _toolAnnotations?: Record<string, unknown>,
+    isSensitive: boolean = false,
   ) {
-    super(params, messageBus, _toolName, _toolDisplayName);
+    super(
+      params,
+      messageBus,
+      _toolName,
+      _toolDisplayName,
+      _serverName,
+      _toolAnnotations,
+      isSensitive,
+    );
   }
-
   override async shouldConfirmExecute(
     _abortSignal: AbortSignal,
   ): Promise<ToolCallConfirmationDetails | false> {
@@ -163,8 +173,7 @@ export class GetInternalDocsTool extends BaseDeclarativeTool<
       Kind.Think,
       GET_INTERNAL_DOCS_DEFINITION.base.parametersJsonSchema,
       messageBus,
-      /* isOutputMarkdown */ true,
-      /* canUpdateOutput */ false,
+      { isOutputMarkdown: true, canUpdateOutput: false, isSensitive: false },
     );
   }
 
@@ -173,12 +182,18 @@ export class GetInternalDocsTool extends BaseDeclarativeTool<
     messageBus: MessageBus,
     _toolName?: string,
     _toolDisplayName?: string,
+    _serverName?: string,
+    _toolAnnotations?: Record<string, unknown>,
+    isSensitive?: boolean,
   ): ToolInvocation<GetInternalDocsParams, ToolResult> {
     return new GetInternalDocsInvocation(
       params,
       messageBus,
       _toolName ?? GetInternalDocsTool.Name,
       _toolDisplayName,
+      _serverName,
+      _toolAnnotations,
+      isSensitive,
     );
   }
 

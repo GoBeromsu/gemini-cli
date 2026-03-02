@@ -34,8 +34,19 @@ class WriteTodosToolInvocation extends BaseToolInvocation<
     messageBus: MessageBus,
     _toolName?: string,
     _toolDisplayName?: string,
+    _serverName?: string,
+    _toolAnnotations?: Record<string, unknown>,
+    isSensitive: boolean = false,
   ) {
-    super(params, messageBus, _toolName, _toolDisplayName);
+    super(
+      params,
+      messageBus,
+      _toolName,
+      _toolDisplayName,
+      _serverName,
+      _toolAnnotations,
+      isSensitive,
+    );
   }
 
   getDescription(): string {
@@ -83,8 +94,7 @@ export class WriteTodosTool extends BaseDeclarativeTool<
       Kind.Other,
       WRITE_TODOS_DEFINITION.base.parametersJsonSchema,
       messageBus,
-      true, // isOutputMarkdown
-      false, // canUpdateOutput
+      { isOutputMarkdown: true, canUpdateOutput: false },
     );
   }
 
@@ -128,12 +138,18 @@ export class WriteTodosTool extends BaseDeclarativeTool<
     messageBus: MessageBus,
     _toolName?: string,
     _displayName?: string,
+    _serverName?: string,
+    _toolAnnotations?: Record<string, unknown>,
+    isSensitive?: boolean,
   ): ToolInvocation<WriteTodosToolParams, ToolResult> {
     return new WriteTodosToolInvocation(
       params,
       messageBus,
       _toolName,
       _displayName,
+      _serverName,
+      _toolAnnotations,
+      isSensitive,
     );
   }
 }

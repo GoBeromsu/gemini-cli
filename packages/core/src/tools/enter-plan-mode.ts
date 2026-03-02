@@ -28,7 +28,7 @@ export class EnterPlanModeTool extends BaseDeclarativeTool<
   ToolResult
 > {
   constructor(
-    private config: Config,
+    private readonly config: Config,
     messageBus: MessageBus,
   ) {
     super(
@@ -38,21 +38,28 @@ export class EnterPlanModeTool extends BaseDeclarativeTool<
       Kind.Plan,
       ENTER_PLAN_MODE_DEFINITION.base.parametersJsonSchema,
       messageBus,
+      { isOutputMarkdown: true, canUpdateOutput: false, isSensitive: false },
     );
   }
 
   protected createInvocation(
     params: EnterPlanModeParams,
     messageBus: MessageBus,
-    toolName: string,
-    toolDisplayName: string,
+    _toolName?: string,
+    _toolDisplayName?: string,
+    _serverName?: string,
+    _toolAnnotations?: Record<string, unknown>,
+    isSensitive?: boolean,
   ): EnterPlanModeInvocation {
     return new EnterPlanModeInvocation(
+      this.config,
       params,
       messageBus,
-      toolName,
-      toolDisplayName,
-      this.config,
+      _toolName,
+      _toolDisplayName,
+      _serverName,
+      _toolAnnotations,
+      isSensitive,
     );
   }
 
@@ -68,13 +75,24 @@ export class EnterPlanModeInvocation extends BaseToolInvocation<
   private confirmationOutcome: ToolConfirmationOutcome | null = null;
 
   constructor(
+    private readonly config: Config,
     params: EnterPlanModeParams,
     messageBus: MessageBus,
-    toolName: string,
-    toolDisplayName: string,
-    private config: Config,
+    _toolName?: string,
+    _toolDisplayName?: string,
+    _serverName?: string,
+    _toolAnnotations?: Record<string, unknown>,
+    isSensitive: boolean = false,
   ) {
-    super(params, messageBus, toolName, toolDisplayName);
+    super(
+      params,
+      messageBus,
+      _toolName,
+      _toolDisplayName,
+      _serverName,
+      _toolAnnotations,
+      isSensitive,
+    );
   }
 
   getDescription(): string {

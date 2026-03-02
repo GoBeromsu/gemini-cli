@@ -432,10 +432,21 @@ class EditToolInvocation
     private readonly config: Config,
     params: EditToolParams,
     messageBus: MessageBus,
-    toolName?: string,
-    displayName?: string,
+    _toolName?: string,
+    _toolDisplayName?: string,
+    _serverName?: string,
+    _toolAnnotations?: Record<string, unknown>,
+    isSensitive: boolean = false,
   ) {
-    super(params, messageBus, toolName, displayName);
+    super(
+      params,
+      messageBus,
+      _toolName,
+      _toolDisplayName,
+      _serverName,
+      _toolAnnotations,
+      isSensitive,
+    );
   }
 
   override toolLocations(): ToolLocation[] {
@@ -954,8 +965,7 @@ export class EditTool
       Kind.Edit,
       EDIT_DEFINITION.base.parametersJsonSchema,
       messageBus,
-      true, // isOutputMarkdown
-      false, // canUpdateOutput
+      { isOutputMarkdown: true, canUpdateOutput: false, isSensitive: true },
     );
   }
 
@@ -1001,13 +1011,21 @@ export class EditTool
   protected createInvocation(
     params: EditToolParams,
     messageBus: MessageBus,
+    _toolName?: string,
+    _toolDisplayName?: string,
+    _serverName?: string,
+    _toolAnnotations?: Record<string, unknown>,
+    isSensitive?: boolean,
   ): ToolInvocation<EditToolParams, ToolResult> {
     return new EditToolInvocation(
       this.config,
       params,
       messageBus,
-      this.name,
-      this.displayName,
+      _toolName,
+      _toolDisplayName,
+      _serverName,
+      _toolAnnotations,
+      isSensitive,
     );
   }
 

@@ -41,6 +41,26 @@ interface TestResult extends ToolResult {
 }
 
 class TestToolInvocation extends BaseToolInvocation<TestParams, TestResult> {
+  constructor(
+    params: TestParams,
+    messageBus: MessageBus,
+    _toolName?: string,
+    _toolDisplayName?: string,
+    _serverName?: string,
+    _toolAnnotations?: Record<string, unknown>,
+    isSensitive: boolean = false,
+  ) {
+    super(
+      params,
+      messageBus,
+      _toolName,
+      _toolDisplayName,
+      _serverName,
+      _toolAnnotations,
+      isSensitive,
+    );
+  }
+
   getDescription(): string {
     return `Test tool with param: ${this.params.testParam}`;
   }
@@ -82,8 +102,7 @@ class TestTool extends BaseDeclarativeTool<TestParams, TestResult> {
         required: ['testParam'],
       },
       messageBus,
-      true,
-      false,
+      { isOutputMarkdown: true, canUpdateOutput: false },
     );
   }
 
@@ -92,12 +111,18 @@ class TestTool extends BaseDeclarativeTool<TestParams, TestResult> {
     messageBus: MessageBus,
     _toolName?: string,
     _toolDisplayName?: string,
+    _serverName?: string,
+    _toolAnnotations?: Record<string, unknown>,
+    isSensitive?: boolean,
   ) {
     return new TestToolInvocation(
       params,
       messageBus,
       _toolName,
       _toolDisplayName,
+      _serverName,
+      _toolAnnotations,
+      isSensitive,
     );
   }
 }
