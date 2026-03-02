@@ -266,32 +266,12 @@ export const ToolConfirmationMessage: React.FC<
           key: 'No, suggest changes (esc)',
         });
       }
-    } else if (confirmationDetails.type === 'exec') {
-      options.push({
-        label: 'Allow once',
-        value: ToolConfirmationOutcome.ProceedOnce,
-        key: 'Allow once',
-      });
-      if (isTrustedFolder) {
-        options.push({
-          label: `Allow for this session`,
-          value: ToolConfirmationOutcome.ProceedAlways,
-          key: `Allow for this session`,
-        });
-        if (allowPermanentApproval) {
-          options.push({
-            label: `Allow for all future sessions`,
-            value: ToolConfirmationOutcome.ProceedAlwaysAndSave,
-            key: `Allow for all future sessions`,
-          });
-        }
-      }
-      options.push({
-        label: 'No, suggest changes (esc)',
-        value: ToolConfirmationOutcome.Cancel,
-        key: 'No, suggest changes (esc)',
-      });
-    } else if (confirmationDetails.type === 'info') {
+    } else if (
+      confirmationDetails.type === 'exec' ||
+      confirmationDetails.type === 'info' ||
+      confirmationDetails.type === 'read' ||
+      confirmationDetails.type === 'search'
+    ) {
       options.push({
         label: 'Allow once',
         value: ToolConfirmationOutcome.ProceedOnce,
@@ -464,6 +444,10 @@ export const ToolConfirmationMessage: React.FC<
       }
     } else if (confirmationDetails.type === 'info') {
       question = `Do you want to proceed?`;
+    } else if (confirmationDetails.type === 'read') {
+      question = 'Read file content?';
+    } else if (confirmationDetails.type === 'search') {
+      question = 'Search files in directory?';
     } else if (confirmationDetails.type === 'mcp') {
       // mcp tool confirmation
       const mcpProps = confirmationDetails;
@@ -584,6 +568,28 @@ export const ToolConfirmationMessage: React.FC<
               ))}
             </Box>
           )}
+        </Box>
+      );
+    } else if (confirmationDetails.type === 'read') {
+      bodyContent = (
+        <Box flexDirection="column">
+          <Text color={theme.text.link}>
+            <RenderInline
+              text={confirmationDetails.filePath}
+              defaultColor={theme.text.link}
+            />
+          </Text>
+        </Box>
+      );
+    } else if (confirmationDetails.type === 'search') {
+      bodyContent = (
+        <Box flexDirection="column">
+          <Text color={theme.text.link}>
+            <RenderInline
+              text={confirmationDetails.dirPath}
+              defaultColor={theme.text.link}
+            />
+          </Text>
         </Box>
       );
     } else if (confirmationDetails.type === 'mcp') {

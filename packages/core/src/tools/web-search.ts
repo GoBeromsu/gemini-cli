@@ -7,7 +7,12 @@
 import type { MessageBus } from '../confirmation-bus/message-bus.js';
 import { WEB_SEARCH_TOOL_NAME } from './tool-names.js';
 import type { GroundingMetadata } from '@google/genai';
-import type { ToolInvocation, ToolResult } from './tools.js';
+import type {
+  ToolCallConfirmationDetails,
+  ToolConfirmationOutcome,
+  ToolInvocation,
+  ToolResult,
+} from './tools.js';
 import { BaseDeclarativeTool, BaseToolInvocation, Kind } from './tools.js';
 import { ToolErrorType } from './tool-error.js';
 
@@ -88,6 +93,21 @@ class WebSearchToolInvocation extends BaseToolInvocation<
 
   override getDescription(): string {
     return `Searching the web for: "${this.params.query}"`;
+  }
+
+  protected override async getConfirmationDetails(
+    _abortSignal: AbortSignal,
+  ): Promise<ToolCallConfirmationDetails | false> {
+    const confirmationDetails: ToolCallConfirmationDetails = {
+      type: 'info',
+      title: `Confirm Web Search`,
+      prompt: `Search for: ${this.params.query}`,
+      urls: [this.params.query],
+      onConfirm: async (_outcome: ToolConfirmationOutcome) => {
+        // Policy updates are now handled centrally by the scheduler
+      },
+    };
+    return confirmationDetails;
   }
 
   async execute(signal: AbortSignal): Promise<WebSearchToolResult> {

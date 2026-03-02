@@ -157,13 +157,7 @@ async function handleStandardPolicyUpdate(
     }
 
     let argsPattern: string | undefined;
-    if (tool.isSensitive && confirmationDetails?.type === 'edit') {
-      argsPattern = generateArgsPattern(tool.name, confirmationDetails);
-    } else if (tool.isSensitive && confirmationDetails?.type === 'info') {
-      argsPattern = generateArgsPattern(tool.name, confirmationDetails);
-    } else if (tool.isSensitive && confirmationDetails?.type === 'search') {
-      argsPattern = generateArgsPattern(tool.name, confirmationDetails);
-    } else if (tool.isSensitive && confirmationDetails?.type === 'read') {
+    if (tool.isSensitive && confirmationDetails) {
       argsPattern = generateArgsPattern(tool.name, confirmationDetails);
     }
 
@@ -185,23 +179,31 @@ function generateArgsPattern(
   toolName: string,
   details: SerializableConfirmationDetails,
 ): string | undefined {
-  if (
-    (details.type === 'edit' || details.type === 'read') &&
-    details.filePath
-  ) {
-    const escapedPath = details.filePath.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-    return `.*"file_path":"${escapedPath}".*`;
+  if (details.type === 'edit' && details.filePath) {
+    const jsonValue = JSON.stringify(details.filePath).slice(1, -1);
+    return `.*"file_path":"${jsonValue}".*`;
+  }
+
+  if (details.type === 'read' && details.filePath) {
+    const jsonValue = JSON.stringify(details.filePath).slice(1, -1);
+    if (toolName === 'read_many_files') {
+      return `.*"include":\\[.*"${jsonValue}".*\\].*`;
+    }
+    return `.*"file_path":"${jsonValue}".*`;
   }
 
   if (details.type === 'search' && details.dirPath) {
-    const escapedPath = details.dirPath.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    if (details.dirPath === '.') {
+      return undefined;
+    }
+    const jsonValue = JSON.stringify(details.dirPath).slice(1, -1);
     // Most search tools use 'dir_path' or similar
-    return `.*"dir_path":"${escapedPath}".*`;
+    return `.*"dir_path":"${jsonValue}".*`;
   }
 
   if (details.type === 'info' && details.urls && details.urls.length > 0) {
     const escapedUrls = details.urls
-      .map((url) => url.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'))
+      .map((url) => JSON.stringify(url).slice(1, -1))
       .join('|');
     return `.*(${escapedUrls}).*`;
   }

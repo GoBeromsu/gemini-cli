@@ -50,12 +50,36 @@ describe('Auto-Add Policy Scheduler', () => {
         type: MessageBusType.UPDATE_POLICY,
         toolName: 'read_file',
         persist: true,
-        argsPattern: '.*"file_path":"src/index\\.ts".*',
+        argsPattern: '.*"file_path":"src/index.ts".*',
       }),
     );
   });
 
-  it('should generate argsPattern with escaped characters for read_file', async () => {
+  it('should generate argsPattern for read_many_files', async () => {
+    const config = makeFakeConfig({ autoAddPolicy: true });
+    const tool = {
+      name: 'read_many_files',
+      isSensitive: true,
+    } as unknown as AnyDeclarativeTool;
+
+    const details = {
+      type: 'read',
+      filePath: 'src/index.ts',
+    } as unknown as SerializableConfirmationDetails;
+
+    await updatePolicy(tool, ToolConfirmationOutcome.ProceedAlways, details, {
+      config,
+      messageBus: mockMessageBus,
+    });
+
+    expect(mockMessageBus.publish).toHaveBeenCalledWith(
+      expect.objectContaining({
+        argsPattern: '.*"include":\\[.*"src/index.ts".*\\].*',
+      }),
+    );
+  });
+
+  it('should generate argsPattern with characters that no longer need escaping for read_file', async () => {
     const config = makeFakeConfig({ autoAddPolicy: true });
     const tool = {
       name: 'read_file',
@@ -74,7 +98,7 @@ describe('Auto-Add Policy Scheduler', () => {
 
     expect(mockMessageBus.publish).toHaveBeenCalledWith(
       expect.objectContaining({
-        argsPattern: '.*"file_path":"src/\\[test\\]\\.ts".*',
+        argsPattern: '.*"file_path":"src/[test].ts".*',
       }),
     );
   });
@@ -98,7 +122,31 @@ describe('Auto-Add Policy Scheduler', () => {
 
     expect(mockMessageBus.publish).toHaveBeenCalledWith(
       expect.objectContaining({
-        argsPattern: '.*(https://example\\.com).*',
+        argsPattern: '.*(https://example.com).*',
+      }),
+    );
+  });
+
+  it('should generate argsPattern for google_web_search', async () => {
+    const config = makeFakeConfig({ autoAddPolicy: true });
+    const tool = {
+      name: 'google_web_search',
+      isSensitive: true,
+    } as unknown as AnyDeclarativeTool;
+
+    const details = {
+      type: 'info',
+      urls: ['fun fact'],
+    } as unknown as SerializableConfirmationDetails;
+
+    await updatePolicy(tool, ToolConfirmationOutcome.ProceedAlways, details, {
+      config,
+      messageBus: mockMessageBus,
+    });
+
+    expect(mockMessageBus.publish).toHaveBeenCalledWith(
+      expect.objectContaining({
+        argsPattern: '.*(fun fact).*',
       }),
     );
   });

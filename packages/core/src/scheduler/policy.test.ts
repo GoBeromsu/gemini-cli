@@ -486,6 +486,97 @@ describe('policy.ts', () => {
         }),
       );
     });
+
+    it('should handle read_many_files with include pattern', async () => {
+      const mockConfig = {
+        setApprovalMode: vi.fn(),
+        getAutoAddPolicy: vi.fn().mockReturnValue(true),
+      } as unknown as Mocked<Config>;
+      const mockMessageBus = {
+        publish: vi.fn(),
+      } as unknown as Mocked<MessageBus>;
+      const tool = {
+        name: 'read_many_files',
+        isSensitive: true,
+      } as AnyDeclarativeTool;
+      const details = {
+        type: 'read' as const,
+        filePath: 'src/index.ts',
+        title: 'Read',
+      };
+
+      await updatePolicy(tool, ToolConfirmationOutcome.ProceedAlways, details, {
+        config: mockConfig,
+        messageBus: mockMessageBus,
+      });
+
+      expect(mockMessageBus.publish).toHaveBeenCalledWith(
+        expect.objectContaining({
+          argsPattern: '.*"include":\\[.*"src/index.ts".*\\].*',
+        }),
+      );
+    });
+
+    it('should handle search with dirPath "." by returning undefined argsPattern', async () => {
+      const mockConfig = {
+        setApprovalMode: vi.fn(),
+        getAutoAddPolicy: vi.fn().mockReturnValue(true),
+      } as unknown as Mocked<Config>;
+      const mockMessageBus = {
+        publish: vi.fn(),
+      } as unknown as Mocked<MessageBus>;
+      const tool = {
+        name: 'grep_search',
+        isSensitive: true,
+      } as AnyDeclarativeTool;
+      const details = {
+        type: 'search' as const,
+        dirPath: '.',
+        title: 'Search',
+      };
+
+      await updatePolicy(tool, ToolConfirmationOutcome.ProceedAlways, details, {
+        config: mockConfig,
+        messageBus: mockMessageBus,
+      });
+
+      expect(mockMessageBus.publish).toHaveBeenCalledWith(
+        expect.objectContaining({
+          argsPattern: undefined,
+        }),
+      );
+    });
+
+    it('should use JSON.stringify for escaping in argsPattern', async () => {
+      const mockConfig = {
+        setApprovalMode: vi.fn(),
+        getAutoAddPolicy: vi.fn().mockReturnValue(true),
+      } as unknown as Mocked<Config>;
+      const mockMessageBus = {
+        publish: vi.fn(),
+      } as unknown as Mocked<MessageBus>;
+      const tool = {
+        name: 'read_file',
+        isSensitive: true,
+      } as AnyDeclarativeTool;
+      const details = {
+        type: 'read' as const,
+        filePath: 'C:\\test\\file.ts',
+        title: 'Read',
+      };
+
+      await updatePolicy(tool, ToolConfirmationOutcome.ProceedAlways, details, {
+        config: mockConfig,
+        messageBus: mockMessageBus,
+      });
+
+      // JSON.stringify("C:\test\file.ts") -> "C:\\test\\file.ts"
+      expect(mockMessageBus.publish).toHaveBeenCalledWith(
+        expect.objectContaining({
+          argsPattern: '.*"file_path":"C:\\\\test\\\\file.ts".*',
+        }),
+      );
+    });
   });
 
   describe('getPolicyDenialError', () => {

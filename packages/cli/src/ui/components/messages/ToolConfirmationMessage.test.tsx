@@ -610,4 +610,89 @@ describe('ToolConfirmationMessage', () => {
     expect(output).not.toContain('Invocation Arguments:');
     unmount();
   });
+
+  it('should display filePath for read type', async () => {
+    const confirmationDetails: SerializableConfirmationDetails = {
+      type: 'read',
+      title: 'Confirm Read',
+      filePath: '/some/file.txt',
+    };
+
+    const { lastFrame, waitUntilReady, unmount } = renderWithProviders(
+      <ToolConfirmationMessage
+        callId="test-call-id"
+        confirmationDetails={confirmationDetails}
+        config={mockConfig}
+        getPreferredEditor={vi.fn()}
+        availableTerminalHeight={30}
+        terminalWidth={80}
+      />,
+    );
+    await waitUntilReady();
+
+    const output = lastFrame();
+    expect(output).toContain('/some/file.txt');
+    expect(output).toContain('Read file content?');
+    expect(output).toContain('Allow once');
+    expect(output).toContain('Allow for this session');
+    expect(output).toContain('No, suggest changes (esc)');
+    unmount();
+  });
+
+  it('should show "Allow for all future sessions" for read type when setting is true', async () => {
+    const confirmationDetails: SerializableConfirmationDetails = {
+      type: 'read',
+      title: 'Confirm Read',
+      filePath: '/some/file.txt',
+    };
+
+    const { lastFrame, waitUntilReady, unmount } = renderWithProviders(
+      <ToolConfirmationMessage
+        callId="test-call-id"
+        confirmationDetails={confirmationDetails}
+        config={mockConfig}
+        getPreferredEditor={vi.fn()}
+        availableTerminalHeight={30}
+        terminalWidth={80}
+      />,
+      {
+        settings: createMockSettings({
+          security: { enablePermanentToolApproval: true },
+        }),
+      },
+    );
+    await waitUntilReady();
+
+    const output = lastFrame();
+    expect(output).toContain('Allow for all future sessions');
+    unmount();
+  });
+
+  it('should display dirPath for search type', async () => {
+    const confirmationDetails: SerializableConfirmationDetails = {
+      type: 'search',
+      title: 'Confirm Search',
+      dirPath: '/some/dir',
+    };
+
+    const { lastFrame, waitUntilReady, unmount } = renderWithProviders(
+      <ToolConfirmationMessage
+        callId="test-call-id"
+        confirmationDetails={confirmationDetails}
+        config={mockConfig}
+        getPreferredEditor={vi.fn()}
+        availableTerminalHeight={30}
+        terminalWidth={80}
+      />,
+    );
+    await waitUntilReady();
+
+    const output = lastFrame();
+    expect(output).toContain('/some/dir');
+    expect(output).toContain('Search files in directory?');
+    expect(output).toContain('Allow once');
+    expect(output).toContain('Allow for this session');
+    expect(output).toContain('No, suggest changes (esc)');
+    unmount();
+  });
 });

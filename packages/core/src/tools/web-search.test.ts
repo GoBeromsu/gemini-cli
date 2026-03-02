@@ -74,6 +74,30 @@ describe('WebSearchTool', () => {
     });
   });
 
+  describe('getConfirmationDetails', () => {
+    it('should return correct confirmation details', async () => {
+      const params: WebSearchToolParams = { query: 'test query' };
+      const invocation = tool.build(params);
+
+      // getConfirmationDetails is protected, so we access it via cast
+      const details = await (
+        invocation as unknown as {
+          getConfirmationDetails: (
+            signal: AbortSignal,
+          ) => Promise<ToolCallConfirmationDetails | false>;
+        }
+      ).getConfirmationDetails(abortSignal);
+
+      expect(details).toEqual({
+        type: 'info',
+        title: 'Confirm Web Search',
+        prompt: 'Search for: test query',
+        urls: ['test query'],
+        onConfirm: expect.any(Function),
+      });
+    });
+  });
+
   describe('execute', () => {
     it('should return search results for a successful query', async () => {
       const params: WebSearchToolParams = { query: 'successful query' };
