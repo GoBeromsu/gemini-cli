@@ -7,7 +7,14 @@
 import type { MessageBus } from '../confirmation-bus/message-bus.js';
 import path from 'node:path';
 import { makeRelative, shortenPath } from '../utils/paths.js';
-import type { ToolInvocation, ToolLocation, ToolResult } from './tools.js';
+import type {
+  ToolCallConfirmationDetails,
+  ToolConfirmationOutcome,
+  ToolInvocation,
+  ToolLocation,
+  ToolReadConfirmationDetails,
+  ToolResult,
+} from './tools.js';
 import { BaseDeclarativeTool, BaseToolInvocation, Kind } from './tools.js';
 import { ToolErrorType } from './tool-error.js';
 
@@ -168,6 +175,24 @@ ${result.llmContent}`;
       llmContent,
       returnDisplay: result.returnDisplay || '',
     };
+  }
+
+  protected override async getConfirmationDetails(
+    _abortSignal: AbortSignal,
+  ): Promise<ToolCallConfirmationDetails | false> {
+    if (!this.messageBus) {
+      return false;
+    }
+
+    const details: ToolReadConfirmationDetails = {
+      type: 'read',
+      title: `Confirm Read: ${shortenPath(makeRelative(this.resolvedPath, this.config.getTargetDir()))}`,
+      filePath: this.params.file_path,
+      onConfirm: async (outcome: ToolConfirmationOutcome) => {
+        await this.publishPolicyUpdate(outcome);
+      },
+    };
+    return details;
   }
 }
 

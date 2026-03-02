@@ -1302,6 +1302,7 @@ function toPermissionOptions(
       ];
     case 'info':
     case 'search':
+    case 'read':
       return [
         {
           optionId: ToolConfirmationOutcome.ProceedAlways,

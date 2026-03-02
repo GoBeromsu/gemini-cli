@@ -99,6 +99,11 @@ export type SerializableConfirmationDetails =
       dirPath: string;
     }
   | {
+      type: 'read';
+      title: string;
+      filePath: string;
+    }
+  | {
       type: 'mcp';
       title: string;
       serverName: string;

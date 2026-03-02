@@ -5,7 +5,13 @@
  */
 
 import type { MessageBus } from '../confirmation-bus/message-bus.js';
-import type { ToolInvocation, ToolResult } from './tools.js';
+import type {
+  ToolCallConfirmationDetails,
+  ToolConfirmationOutcome,
+  ToolInvocation,
+  ToolReadConfirmationDetails,
+  ToolResult,
+} from './tools.js';
 import { BaseDeclarativeTool, BaseToolInvocation, Kind } from './tools.js';
 import { getErrorMessage } from '../utils/errors.js';
 import * as fsPromises from 'node:fs/promises';
@@ -458,6 +464,25 @@ ${finalExclusionPatternsForDescription
       llmContent: contentParts,
       returnDisplay: displayMessage.trim(),
     };
+  }
+
+  protected override async getConfirmationDetails(
+    _abortSignal: AbortSignal,
+  ): Promise<ToolCallConfirmationDetails | false> {
+    if (!this.messageBus) {
+      return false;
+    }
+
+    const firstPattern = this.params.include?.[0] || 'multiple patterns';
+    const details: ToolReadConfirmationDetails = {
+      type: 'read',
+      title: `Confirm Read: ${this.params.include?.length || 0} patterns`,
+      filePath: firstPattern,
+      onConfirm: async (outcome: ToolConfirmationOutcome) => {
+        await this.publishPolicyUpdate(outcome);
+      },
+    };
+    return details;
   }
 }
 

@@ -36,7 +36,7 @@ describe('Auto-Add Policy Scheduler', () => {
     } as unknown as AnyDeclarativeTool;
 
     const details = {
-      type: 'edit',
+      type: 'read',
       filePath: 'src/index.ts',
     } as unknown as SerializableConfirmationDetails;
 
@@ -63,7 +63,7 @@ describe('Auto-Add Policy Scheduler', () => {
     } as unknown as AnyDeclarativeTool;
 
     const details = {
-      type: 'edit',
+      type: 'read',
       filePath: 'src/[test].ts',
     } as unknown as SerializableConfirmationDetails;
 
@@ -138,7 +138,7 @@ describe('Auto-Add Policy Scheduler', () => {
     } as unknown as AnyDeclarativeTool;
 
     const details = {
-      type: 'edit',
+      type: 'read',
       filePath: 'src/index.ts',
     } as unknown as SerializableConfirmationDetails;
 
@@ -162,7 +162,7 @@ describe('Auto-Add Policy Scheduler', () => {
     } as unknown as AnyDeclarativeTool;
 
     const details = {
-      type: 'edit',
+      type: 'read',
       filePath: 'src/index.ts',
     } as unknown as SerializableConfirmationDetails;
 

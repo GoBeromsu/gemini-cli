@@ -841,6 +841,13 @@ export interface ToolSearchConfirmationDetails {
   dirPath: string;
 }
 
+export interface ToolReadConfirmationDetails {
+  type: 'read';
+  title: string;
+  onConfirm: (outcome: ToolConfirmationOutcome) => Promise<void>;
+  filePath: string;
+}
+
 export type ToolCallConfirmationDetails =
   | ToolEditConfirmationDetails
   | ToolExecuteConfirmationDetails
@@ -848,7 +855,8 @@ export type ToolCallConfirmationDetails =
   | ToolInfoConfirmationDetails
   | ToolAskUserConfirmationDetails
   | ToolExitPlanModeConfirmationDetails
-  | ToolSearchConfirmationDetails;
+  | ToolSearchConfirmationDetails
+  | ToolReadConfirmationDetails;
 
 export enum ToolConfirmationOutcome {
   ProceedOnce = 'proceed_once',

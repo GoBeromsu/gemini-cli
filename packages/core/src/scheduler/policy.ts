@@ -163,6 +163,8 @@ async function handleStandardPolicyUpdate(
       argsPattern = generateArgsPattern(tool.name, confirmationDetails);
     } else if (tool.isSensitive && confirmationDetails?.type === 'search') {
       argsPattern = generateArgsPattern(tool.name, confirmationDetails);
+    } else if (tool.isSensitive && confirmationDetails?.type === 'read') {
+      argsPattern = generateArgsPattern(tool.name, confirmationDetails);
     }
 
     await deps.messageBus.publish({
@@ -183,7 +185,10 @@ function generateArgsPattern(
   toolName: string,
   details: SerializableConfirmationDetails,
 ): string | undefined {
-  if (details.type === 'edit' && details.filePath) {
+  if (
+    (details.type === 'edit' || details.type === 'read') &&
+    details.filePath
+  ) {
     const escapedPath = details.filePath.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     return `.*"file_path":"${escapedPath}".*`;
   }
@@ -199,14 +204,6 @@ function generateArgsPattern(
       .map((url) => url.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'))
       .join('|');
     return `.*(${escapedUrls}).*`;
-  }
-
-  // Fallback for tools where we can't easily generate a specific pattern
-  // but we still want some protection.
-  if (toolName === 'web_search' && 'prompt' in details && details.prompt) {
-    // If it's a web search, we might want to allow the specific query.
-    // However, prompts can be complex, so we'll be conservative.
-    return undefined;
   }
 
   return undefined;
