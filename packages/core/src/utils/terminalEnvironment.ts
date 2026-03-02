@@ -8,7 +8,6 @@ import os from 'node:os';
 
 export enum WarningPriority {
   Low = 'low',
-  Medium = 'medium',
   High = 'high',
 }
 
