@@ -7,13 +7,12 @@
 import { describe, it, expect, vi, afterEach } from 'vitest';
 import { updatePolicy } from './policy.js';
 import { MessageBusType } from '../confirmation-bus/types.js';
-import {
+import type {
+ SerializableConfirmationDetails ,
   ToolConfirmationOutcome,
-  type AnyDeclarativeTool,
-} from '../tools/tools.js';
+  type AnyDeclarativeTool } from '../tools/tools.js';
 import { makeFakeConfig } from '../test-utils/config.js';
 import { type MessageBus } from '../confirmation-bus/message-bus.js';
-import type { SerializableConfirmationDetails } from '../tools/tools.js';
 
 describe('Auto-Add Policy Scheduler', () => {
   const mockMessageBus = {
@@ -97,6 +96,33 @@ describe('Auto-Add Policy Scheduler', () => {
     expect(mockMessageBus.publish).toHaveBeenCalledWith(
       expect.objectContaining({
         argsPattern: '.*(https://example\\.com).*',
+      }),
+    );
+  });
+
+  it('should generate argsPattern for ls (search type)', async () => {
+    const config = makeFakeConfig({ autoAddPolicy: true });
+    const tool = {
+      name: 'ls',
+      isSensitive: true,
+    } as unknown as AnyDeclarativeTool;
+
+    const details = {
+      type: 'search',
+      dirPath: 'src/utils',
+    } as unknown as SerializableConfirmationDetails;
+
+    await updatePolicy(tool, ToolConfirmationOutcome.ProceedAlways, details, {
+      config,
+      messageBus: mockMessageBus,
+    });
+
+    expect(mockMessageBus.publish).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: MessageBusType.UPDATE_POLICY,
+        toolName: 'ls',
+        persist: true,
+        argsPattern: '.*"dir_path":"src/utils".*',
       }),
     );
   });

@@ -161,6 +161,8 @@ async function handleStandardPolicyUpdate(
       argsPattern = generateArgsPattern(tool.name, confirmationDetails);
     } else if (tool.isSensitive && confirmationDetails?.type === 'info') {
       argsPattern = generateArgsPattern(tool.name, confirmationDetails);
+    } else if (tool.isSensitive && confirmationDetails?.type === 'search') {
+      argsPattern = generateArgsPattern(tool.name, confirmationDetails);
     }
 
     await deps.messageBus.publish({
